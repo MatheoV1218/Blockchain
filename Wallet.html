@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Wallet</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .wallet-info {
+            max-width: 300px;
+            margin-bottom: 20px;
+        }
+        .wallet-info p {
+            margin: 10px 0;
+            font-size: 18px;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #2694b3;
+            color: white;
+            text-decoration: none;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #1e7b96;
+        }
+    </style>
+</head>
+<body>
+    <div class="wallet-info">
+        <p>Transactions: <span id="transaction-count">0</span></p>
+        <p>Coins: <span id="coin-amount">0</span></p>
+        <p>NFTs Owned: <span id="nft-count">0</span></p>
+    </div>
+    <a href="Transactions.html" class="button">View Transactions</a>
+    <button onclick="
+        wallet.transactions = 0;
+        wallet.coins = 0;
+        localStorage.setItem('wallet', JSON.stringify(wallet));
+        document.getElementById('transaction-count').textContent = 0;
+        document.getElementById('coin-amount').textContent = 0;
+    " class="button">Reset Coins & Transactions</button>
+    <a href="Games/12-rock-paper-scissors.html" class="button">Back to Game</a>
+
+    <script>
+        let wallet = JSON.parse(localStorage.getItem('wallet')) || {
+            transactions: 0,
+            coins: 0,
+            nfts: 0
+        };
+
+        document.getElementById("transaction-count").textContent = wallet.transactions;
+        document.getElementById("coin-amount").textContent = wallet.coins;
+        document.getElementById("nft-count").textContent = wallet.nfts;
+    </script>
+</body>
+</html>

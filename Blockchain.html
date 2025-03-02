@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Blockchain</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            background: linear-gradient(90deg, #2694b3, #1e7b96);
+            padding: 15px 30px;
+            position: relative;
+            gap: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .topbar a {
+            color: white;
+            font-size: 20px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.3s ease, transform 0.2s ease;
+            letter-spacing: 0.5px;
+        }
+
+        .topbar a:hover {
+            color: #f1f1f1;
+            transform: scale(1.05);
+        }
+
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background: linear-gradient(90deg, #1e7b96, #16637a);
+            min-width: 150px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+            z-index: 1;
+            top: 100%;
+            left: 0;
+            border-radius: 5px;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .dropdown-content a {
+            color: white;
+            padding: 12px 15px;
+            display: block;
+            text-decoration: none;
+            font-size: 16px;
+        }
+
+        .dropdown-content a:hover {
+            background-color: #1e7b96;
+        }
+
+        .dropdown:hover .dropdown-content {
+            display: block;
+            opacity: 1;
+        }
+
+        @media (max-width: 768px) {
+            .topbar {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 10px;
+            }
+            .dropdown-content {
+                position: static;
+                box-shadow: none;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="topbar">
+        <div class="dropdown">
+            <a class="games">Games</a>
+            <div class="dropdown-content">
+                <a href="Games/12-rock-paper-scissors.html">Rock Paper Scissors</a>
+                <a href="Game2.html">Game 2</a>
+                <a href="Game3.html">Game 3</a>
+            </div>
+        </div>
+        <a href="Store.html" class="store">Store</a>
+        <a href="Trade.html" class="trade">Trade</a>
+        <a href="Wallet.html" class="wallet">Wallet</a>
+    </div>
+</body>
+</html>
