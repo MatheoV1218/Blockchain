@@ -1,11 +1,14 @@
-// Load score and wallet from localStorage or set defaults
-let score = JSON.parse(localStorage.getItem('score')) || {
+// Retrieve the selected miner
+const selectedMiner = localStorage.getItem("selectedMiner");
+
+// Load score and wallet for the selected miner, or set defaults
+let score = JSON.parse(localStorage.getItem(`minerData_${selectedMiner}_score`)) || {
   wins: 0,
   losses: 0,
   ties: 0
 };
 
-let wallet = JSON.parse(localStorage.getItem('wallet')) || {
+let wallet = JSON.parse(localStorage.getItem(`minerData_${selectedMiner}_wallet`)) || {
   transactions: 0,
   coins: 0,
   nfts: 0
@@ -77,9 +80,9 @@ function playGame(playerMove) {
     score.ties += 1;
   }
 
-  // Save updated score and wallet to localStorage
-  localStorage.setItem('score', JSON.stringify(score));
-  localStorage.setItem('wallet', JSON.stringify(wallet));
+  // Save updated score and wallet to localStorage for the selected miner
+  localStorage.setItem(`minerData_${selectedMiner}_score`, JSON.stringify(score));
+  localStorage.setItem(`minerData_${selectedMiner}_wallet`, JSON.stringify(wallet));
 
   updateScoreElement();
 

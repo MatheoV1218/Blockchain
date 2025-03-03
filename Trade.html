@@ -10,25 +10,6 @@
     <button onclick="tradeCoins();" class="button">Trade Coins</button>
     <a href="wallet.html" class="button">Back to Wallet</a>
 
-    <script>
-        let wallet = JSON.parse(localStorage.getItem('wallet')) || {
-            transactions: 0,
-            coins: 0,
-            nfts: 0
-        };
-
-        document.getElementById("coin-amount").innerText = wallet.coins;
-
-        function tradeCoins() {
-            let coinsToTrade = Number(document.getElementById("trade-coins").value);
-            if (coinsToTrade > 0 && coinsToTrade <= wallet.coins) {
-                wallet.coins = wallet.coins - coinsToTrade;
-                wallet.transactions = wallet.transactions + 1;
-                localStorage.setItem('wallet', JSON.stringify(wallet));
-                document.getElementById("coin-amount").innerText = wallet.coins;
-                document.getElementById("trade-coins").value = "";
-            }
-        }
-    </script>
+    <script src="scripts/trade.js"></script>
 </body>
 </html>

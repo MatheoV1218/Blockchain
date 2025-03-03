@@ -20,16 +20,6 @@
     " class="button">Reset Coins & Transactions</button>
     <a href="Games/12-rock-paper-scissors.html" class="button">Back to Game</a>
 
-    <script>
-        let wallet = JSON.parse(localStorage.getItem('wallet')) || {
-            transactions: 0,
-            coins: 0,
-            nfts: 0
-        };
-
-        document.getElementById("transaction-count").textContent = wallet.transactions;
-        document.getElementById("coin-amount").textContent = wallet.coins;
-        document.getElementById("nft-count").textContent = wallet.nfts;
-    </script>
+    <script src="scripts/wallet.js"></script>
 </body>
 </html>
