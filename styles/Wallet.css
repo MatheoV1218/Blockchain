@@ -1,26 +1,72 @@
 body {
+  font-family: 'Montserrat', sans-serif;
+  background: #121212; /* Dark mode background */
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
   margin: 0;
-  font-family: Arial, sans-serif;
-  padding: 20px;
 }
+
 .wallet-info {
-  max-width: 300px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #1e1e1e; /* Dark background for contrast */
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(255, 255, 255, 0.1);
+  width: 300px;
+  text-align: center;
   margin-bottom: 20px;
 }
+
 .wallet-info p {
   margin: 10px 0;
-  font-size: 18px;
+  font-size: 20px;
+  font-weight: bold;
 }
+
+.wallet-info span {
+  font-size: 24px;
+  color: #ffd700; /* Gold color for the coin amount */
+  font-weight: bold;
+}
+
 .button {
-  display: inline-block;
-  padding: 10px 20px;
-  background-color: #2694b3;
+  background: #1e1e1e;
   color: white;
   text-decoration: none;
-  font-size: 16px;
+  font-size: 1.5rem;
+  font-weight: bold;
+  padding: 15px 40px;
+  border-radius: 10px;
+  transition: 0.3s;
+  text-align: center;
+  width: 250px;
+  text-transform: uppercase;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
   border: none;
   cursor: pointer;
 }
+
 .button:hover {
-  background-color: #1e7b96;
+  color: #ffd700; /* Gold color for the coin amount */
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.button-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px; /* Adjusts spacing between buttons */
+  align-items: center;
+  margin-top: 10px;
 }

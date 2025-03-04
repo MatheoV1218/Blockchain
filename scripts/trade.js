@@ -12,17 +12,34 @@
   document.getElementById("coin-amount").innerText = wallet.coins;
 
   // Trade coins function
-  function tradeCoins() {
-      let coinsToTrade = Number(document.getElementById("trade-coins").value);
-      if (coinsToTrade > 0 && coinsToTrade <= wallet.coins) {
-          wallet.coins = wallet.coins - coinsToTrade;
-          wallet.transactions = wallet.transactions + 1;
+ // Assuming your current coin trading logic is here...
 
-          // Save the updated wallet data to localStorage
-          localStorage.setItem(`minerData_${selectedMiner}_wallet`, JSON.stringify(wallet));
+// After a successful trade, call the addTransaction function from mempool.js
+function tradeCoins() {
+    let coinsToTrade = Number(document.getElementById("trade-coins").value);
+    
+    // Debugging log to check if the miner is being retrieved correctly
+    console.log("Selected Miner:", selectedMiner);
 
-          // Update the UI to reflect the new wallet state
-          document.getElementById("coin-amount").innerText = wallet.coins;
-          document.getElementById("trade-coins").value = "";  // Reset input field
-      }
-  }
+    // Check if the wallet is loaded correctly
+    console.log("Wallet before trade:", wallet);
+
+    if (coinsToTrade > 0 && coinsToTrade <= wallet.coins) {
+        wallet.coins = wallet.coins - coinsToTrade;
+        wallet.transactions = wallet.transactions + 1;
+
+        // Save the updated wallet data to localStorage
+        localStorage.setItem(`minerData_${selectedMiner}_wallet`, JSON.stringify(wallet));
+
+        // Update the UI to reflect the new wallet state
+        document.getElementById("coin-amount").innerText = wallet.coins;
+        document.getElementById("trade-coins").value = "";  // Reset input field
+        
+        // Call the addTransaction function to update the mempool table
+        addTransaction(selectedMiner, `Coins traded: ${coinsToTrade}`);
+
+        // Debugging log to check wallet after the trade
+        console.log("Wallet after trade:", wallet);
+    }
+}
+

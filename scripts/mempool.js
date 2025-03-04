@@ -1,28 +1,62 @@
-// Retrieve the selected miner from localStorage
-const selectedMiner = localStorage.getItem("selectedMiner") || "Unknown";
+// Select the table body for mempool
+const tableBody = document.querySelector("#blockchainTable tbody");
 
-// Select all table rows (excluding the header row)
-const tableRows = document.querySelectorAll("#blockchainTable tr");
+// Track the transaction count
+let transactionCount = document.querySelectorAll("#blockchainTable tr").length - 1; // Subtracting the header row
 
-// Loop through rows and update the 'Miner #' column dynamically
-for (let i = 1; i < tableRows.length; i++) { // Start from index 1 to skip the header
-    const minerCell = tableRows[i].children[1]; // The second column (Miner #)
-    minerCell.textContent = selectedMiner;
+// Function to add a new transaction to the table
+function addTransaction(minerNumber, coinsTraded) {
+    transactionCount++; // Increment the transaction count
+
+    // Get the current date and time
+    const now = new Date();
+    const date = now.toLocaleDateString();
+    const time = now.toLocaleTimeString();
+
+    // Create a new row for the transaction
+    const newRow = document.createElement("tr");
+
+    // Create and append cells for transaction number, miner, data, date, and time
+    const numberCell = document.createElement("td");
+    numberCell.textContent = transactionCount;
+
+    const minerCell = document.createElement("td");
+    minerCell.textContent = minerNumber;
+
+    const dataCell = document.createElement("td");
+    dataCell.textContent = `Coins Traded: ${coinsTraded}`;
+
+    const dateCell = document.createElement("td");
+    dateCell.textContent = date;
+
+    const timeCell = document.createElement("td");
+    timeCell.textContent = time;
+
+    // Append the cells to the new row
+    newRow.appendChild(numberCell);
+    newRow.appendChild(minerCell);
+    newRow.appendChild(dataCell);
+    newRow.appendChild(dateCell);
+    newRow.appendChild(timeCell);
+
+    // Append the new row to the table body
+    tableBody.appendChild(newRow);
+
+    // Update the table's date and time
+    updateDateTime();
 }
 
-// Update date and time dynamically
+// Function to update date and time for all transactions
 function updateDateTime() {
     const now = new Date();
     const dateCells = document.querySelectorAll(".date");
     const timeCells = document.querySelectorAll(".time");
-    
+
     dateCells.forEach(cell => {
         cell.textContent = now.toLocaleDateString();
     });
-    
+
     timeCells.forEach(cell => {
         cell.textContent = now.toLocaleTimeString();
     });
 }
-
-updateDateTime();
