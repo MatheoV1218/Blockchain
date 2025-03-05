@@ -34,12 +34,22 @@ function tradeCoins() {
         // Update the UI to reflect the new wallet state
         document.getElementById("coin-amount").innerText = wallet.coins;
         document.getElementById("trade-coins").value = "";  // Reset input field
+<<<<<<< HEAD
         
         // Call the addTransaction function to update the mempool table
         addTransaction(selectedMiner, `Coins traded: ${coinsToTrade}`);
 
         // Debugging log to check wallet after the trade
         console.log("Wallet after trade:", wallet);
+=======
+
+        //  Transitions from the trade to the mempool html file
+        console.log("hello chat");
+
+        // Debugging log to check wallet after the trade
+        console.log("Wallet after trade:", wallet);
+        window.location.href = `mempool.html?miner=${selectedMiner}&coins=${coinsToTrade}`;
+>>>>>>> f7618df (changed the trade js file to link you into the mempool html and changed the mempool js file, removing the addTransaction function)
     }
 }
 
