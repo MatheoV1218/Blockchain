@@ -55,6 +55,7 @@ body{
 .mid-section p{
   margin: 0;
 }
+
 .gem-img{
   width: 20px;
   height: 20px;
@@ -96,3 +97,22 @@ body{
   font-weight: bold;
   font-size: 22px;
 }
+
+.coin-img2{
+  width: 20px;
+  height: 20px;
+  vertical-align: middle;
+}
+
+.coin-box {
+  position: fixed;
+  font-family: 'Montserrat', sans-serif;
+  bottom: 5px;
+  right: 5px;
+  color: #ffd700; /* Gold color for headers */
+  padding: 5px;
+  border-radius: 5px;
+  font-size: 25px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+

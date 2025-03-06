@@ -1,3 +1,17 @@
+ // Retrieve the selected miner
+ const selectedMiner = localStorage.getItem("selectedMiner");
+
+ // Load wallet data specific to the selected miner
+ let wallet = JSON.parse(localStorage.getItem(`minerData_${selectedMiner}_wallet`)) || {
+     transactions: 0,
+     coins: 0,
+     nfts: 0
+ };
+
+ // Display current coin amount on the page
+ document.getElementById("coin-count").innerText = wallet.coins;
+
+
 let gem = document.querySelector('.gem-cost');
 let parsedGem = parseFloat(gem.innerHTML);
 
@@ -19,6 +33,8 @@ let minerLevel = document.querySelector('.miner-level');
 let minerIncrease = document.querySelector('.miner-increase');
 let parsedMinerIncrease = parseFloat(minerIncrease.innerHTML);
 let gps = 0;
+
+let coinCost = document.querySelector('.coin-cost')
 
 let gpcText = document.getElementById('gpc-text');
 let gpsText = document.getElementById('gps-text')
@@ -70,6 +86,24 @@ function buyMiner() {
     minerCost.innerHTML = Math.round(parsedMinerCost)
   }
 }
+
+
+function purchaseCoins() {
+  let parsedCoinCost = parseFloat(coinCost.innerHTML); // Convert the coin cost to a number
+
+  if (parsedGem >= parsedCoinCost) {
+    gem.innerHTML = Math.round(parsedGem -= parsedCoinCost);
+    wallet.coins += 100;
+
+    // Save the updated wallet back to localStorage
+    localStorage.setItem(`minerData_${selectedMiner}_wallet`, JSON.stringify(wallet));
+
+    // Update the coin count display
+    document.getElementById("coin-count").innerText = wallet.coins;
+  }
+}
+
+
 setInterval(() => {
 parsedGem += gps / 10;
 gem.innerHTML = Math.round(parsedGem)
