@@ -1,0 +1,98 @@
+body{
+  display: grid;
+  place-items: center;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  background: #343232; 
+  color: white;
+  user-select: none;
+  position: relative;
+}
+.main{
+  display: flex;
+  gap: 200px;
+}
+.left h3{
+  text-align: center;
+  font-size: 30px;
+  margin-bottom: 30px;
+}
+.gem-image{
+  width: 300px;
+
+}
+.gem-image:hover{
+  cursor: pointer;
+  opacity: 0.9;
+}
+.gem-image:active{
+  opacity: 0.8;
+  transform: scale(1.02);
+}
+.upgrade-img{
+  width: 50px;
+
+}
+
+.upgrade{
+  display: flex;
+  align-items: center;
+  width: 330px;
+  height: 60px;
+  border: 4px solid white;
+  justify-content: space-between;
+  padding: 10px 20px;
+  border-radius: 5px;
+  position: relative;
+  margin-bottom: 20px;
+}
+.mid-section h4{
+  margin: 0;
+  margin-bottom: 20px;
+  font-size: 20px;
+}
+.mid-section p{
+  margin: 0;
+}
+.gem-img{
+  width: 20px;
+  height: 20px;
+}
+.cost-info{
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+.next-level-info{
+  position: absolute;
+  right: -105px;
+  background-color: grey;
+  height: 80px;
+  width: 100px;
+  text-align: center;
+  display: none;
+
+}
+.upgrade:hover .next-level-info{
+  display: block;
+}
+.statistics{
+  position: absolute;
+  bottom: 0;
+  width: 450px;
+  padding: 30px;
+  border: 2px white solid;
+  border-top-right-radius: 10px;
+  border-top-left-radius: 10px;
+  left: 50%;
+  transform: translate(-50%);
+}
+
+.texts{
+  display: flex;
+  gap: 100px;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 22px;
+}

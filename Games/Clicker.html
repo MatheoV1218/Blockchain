@@ -1,15 +1,89 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    
-  </head>
-  <body>
-   
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clicker Game</title>
+  <link rel="stylesheet" href="styles/Clicker.css">
+</head>
+
+<body>
+  <section>
+    <div class="main">
+     <div class="left">
+      <h3>Gem: <span class="gem-cost">0</span></h3>
+      <img src="images/purple gem new.png" alt="Purple Gem" class="gem-image" onclick="incrementGem()" draggable="false">
+
+     </div>
+     <div class="right">
+      <div class="upgrade" onclick="buyClicker()">
+        <div class="left-section">
+          <img src="images/cursor.png" class="upgrade-img">
+        </div>
+        <div class="mid-section">
+          <h4>Clicker</h4>
+          <div class="cost-info">
+            <p>Cost: <span class="clicker-cost">10</span></p>
+            <img src="images/purple gem new.png" class="gem-img">
+          </div>
+        </div>
+        <div class="right-section">Level: <span class="clicker-level">0</span></div>
+        <div class="next-level-info">
+          <p>
+            +<span class="clicker-increase">1</span> Gems <br /> per click
+          </p>
+        </div>
+      </div>
 
 
+      <div class="upgrade" onclick="buyPickaxe()">
+        <div class="left-section">
+          <img src="images/pickaxe.png" class="upgrade-img">
+        </div>
+        <div class="mid-section">
+          <h4>Pickaxe</h4>
+          <div class="cost-info">
+            <p>Cost: <span class="pickaxe-cost">130</span></p>
+            <img src="images/purple gem new.png" class="gem-img">
+          </div>
+        </div>
+        <div class="right-section">Level: <span class="pickaxe-level">0</span></div>
+        <div class="next-level-info">
+          <p>
+            +<span class="pickaxe-increase">4</span> Gems <br /> per second
+          </p>
+        </div>
+      </div>
 
+      <div class="upgrade" onclick="buyMiner()">
+        <div class="left-section">
+          <img src="images/miner.png" class="upgrade-img">
+        </div>
+        <div class="mid-section">
+          <h4>Miner</h4>
+          <div class="cost-info">
+            <p>Cost: <span class="miner-cost">850</span></p>
+            <img src="images/purple gem new.png" class="gem-img">
+          </div>
+        </div>
+        <div class="right-section">Level: <span class="miner-level">0</span></div>
+        <div class="next-level-info">
+          <p>
+            +<span class="miner-increase">12</span> Gems <br /> per second
+          </p>
+        </div>
+      </div>
 
+      <div class="statistics">
+        <div class="texts">
+          <p>GPC: <span id="gpc-text">1</span></p>
+          <p>GPS: <span id="gps-text">0</span></p>
 
-
-  </body>
+        </div>
+      </div>
+     </div>
+    </div>
+  </section>
+  <script src="scripts/clicker.js"></script>
+</body>
 </html>
