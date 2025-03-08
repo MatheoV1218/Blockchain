@@ -5,7 +5,8 @@ const selectedMiner = localStorage.getItem("selectedMiner");
 let wallet = JSON.parse(localStorage.getItem(`minerData_${selectedMiner}_wallet`)) || {
     transactions: 0,
     coins: 0,
-    nfts: 0
+    nfts: 0,
+    mines: 0 // Added Mines property
 };
 
 // Display miner name and wallet balance
@@ -18,7 +19,7 @@ let participants = JSON.parse(localStorage.getItem("raffleParticipants")) || [];
 // Load winner if already selected
 let winner = localStorage.getItem("raffleWinner");
 if (winner) {
-    document.getElementById("winner-text").innerText = `🎉 Winner: ${winner}!`;
+    document.getElementById("winner-text").innerText = `Winner: ${winner}!`;
 }
 
 // Update participant list UI
@@ -37,7 +38,6 @@ updateParticipantsUI();
 document.getElementById("stake-btn").addEventListener("click", function() {
     let stakeAmount = parseInt(document.getElementById("stake-amount").value);
 
-    // Validate input
     if (isNaN(stakeAmount) || stakeAmount <= 0) {
         alert("Please enter a valid stake amount.");
         return;
@@ -47,26 +47,19 @@ document.getElementById("stake-btn").addEventListener("click", function() {
         return;
     }
 
-    // Deduct from wallet
     wallet.coins -= stakeAmount;
     localStorage.setItem(`minerData_${selectedMiner}_wallet`, JSON.stringify(wallet));
     document.getElementById("wallet-coins").innerText = wallet.coins;
 
-    // Check if miner already exists in participants
     let existingParticipant = participants.find(p => p.name === selectedMiner);
     if (existingParticipant) {
-        existingParticipant.stake += stakeAmount; // Add to existing stake
+        existingParticipant.stake += stakeAmount;
     } else {
         participants.push({ name: selectedMiner, stake: stakeAmount });
     }
 
-    // Save participants to localStorage
     localStorage.setItem("raffleParticipants", JSON.stringify(participants));
-
-    // Update UI
     updateParticipantsUI();
-
-    // Reset input
     document.getElementById("stake-amount").value = "";
 });
 
@@ -77,10 +70,9 @@ document.getElementById("draw-btn").addEventListener("click", function() {
         return;
     }
 
-    // Weighted random selection
     let totalStake = participants.reduce((sum, p) => sum + p.stake, 0);
     let rand = Math.random() * totalStake;
-    
+
     let cumulative = 0;
     let winnerName = null;
     for (let participant of participants) {
@@ -91,11 +83,14 @@ document.getElementById("draw-btn").addEventListener("click", function() {
         }
     }
 
-    // Save winner in localStorage so all accounts see it
     localStorage.setItem("raffleWinner", winnerName);
-    document.getElementById("winner-text").innerText = `🎉 Winner: ${winnerName}!`;
+    document.getElementById("winner-text").innerText = `Winner: ${winnerName}!`;
 
-    // Clear the game state
+    // Give +1 Mine to the winner
+    let minersMines = JSON.parse(localStorage.getItem("minersMines")) || {};
+    minersMines[winnerName] = (minersMines[winnerName] || 0) + 1;
+    localStorage.setItem("minersMines", JSON.stringify(minersMines));
+
     localStorage.removeItem("raffleParticipants");
     participants = [];
     updateParticipantsUI();

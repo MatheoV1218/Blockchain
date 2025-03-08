@@ -1,93 +1,72 @@
-    // Select the table body for mempool
-    const urlParams = new URLSearchParams(window.location.search);
-    const minerNumber = urlParams.get("miner");  // Gets the "miner" value
-    const coinsTraded = urlParams.get("coins");  // Gets the "coins" value
-    console.log(`Miner: ${minerNumber}, Coins: ${coinsTraded}`);
+// Retrieve selected miner
+const selectedMiner = localStorage.getItem("selectedMiner");
 
-    const tableBody = document.querySelector("#blockchainTable tbody");
+// Select the table body for transactions
+const urlParams = new URLSearchParams(window.location.search);
+const minerNumber = urlParams.get("miner");
+const coinsTraded = urlParams.get("coins");
+const tableBody = document.querySelector("#blockchainTable tbody");
 
-    // Check if tableBody is correctly selected
-    console.log(tableBody); // Should print the tbody element, not null
+// Load existing transactions from localStorage
+let transactions = JSON.parse(localStorage.getItem("mempoolTransactions")) || [];
 
-    // Track the transaction count
-    let transactionCount = document.querySelectorAll("#blockchainTable tr").length - 1; // Subtracting the header row
+// Load Mines for the current miner
+function getCurrentMinerMines() {
+    let minersMines = JSON.parse(localStorage.getItem("minersMines")) || {};
+    return minersMines[selectedMiner] || 0;
+}
 
-    // Function to add a new transaction to the table
-   
-        console.log("addTransaction called"); // Check if the function is being called
-        console.log("Miner Number:", minerNumber);
-        console.log("Coins Traded:", coinsTraded);
+// Function to update the Mine counter on the page
+function updateMineCounter() {
+    document.getElementById("mine-counter").innerText = getCurrentMinerMines();
+}
 
-        transactionCount++; // Increment the transaction count
-        console.log("Updated Transaction Count:", transactionCount);
+// Function to render transactions from localStorage
+function renderTransactions() {
+    tableBody.innerHTML = ""; // Clear table before rendering
 
-        // Get the current date and time
-        const now = new Date();
-        const date = now.toLocaleDateString();
-        const time = now.toLocaleTimeString();
+    // Sort transactions in descending order by coin cost
+    transactions.sort((a, b) => b.coins - a.coins);
 
-        console.log("Current Date:", date);
-        console.log("Current Time:", time);
-
-        // Create a new row for the transaction
+    transactions.forEach((transaction, index) => {
         const newRow = document.createElement("tr");
-        console.log("New Row Created:", newRow);
+        newRow.innerHTML = `
+            <td>${index + 1}</td>
+            <td>${transaction.miner}</td>
+            <td>Coins Traded: ${transaction.coins}</td>
+            <td class="date">${transaction.date}</td>
+            <td class="time">${transaction.time}</td>
+        `;
+        tableBody.appendChild(newRow);
+    });
+}
 
-        // Create and append cells for transaction number, miner, data, date, and time
-        const numberCell = document.createElement("td");
-        numberCell.textContent = transactionCount;
-        console.log("Number Cell Created:", numberCell);
-
-        const minerCell = document.createElement("td");
-        minerCell.textContent = minerNumber;
-        console.log("Miner Cell Created:", minerCell);
-
-        const dataCell = document.createElement("td");
-        dataCell.textContent = `Coins Traded: ${coinsTraded}`;
-        console.log("Data Cell Created:", dataCell);
-
-        const dateCell = document.createElement("td");
-        dateCell.textContent = date;
-        console.log("Date Cell Created:", dateCell);
-
-        const timeCell = document.createElement("td");
-        timeCell.textContent = time;
-        console.log("Time Cell Created:", timeCell);
-
-        // Append the cells to the new row
-        newRow.appendChild(numberCell);
-        newRow.appendChild(minerCell);
-        newRow.appendChild(dataCell);
-        newRow.appendChild(dateCell);
-        newRow.appendChild(timeCell);
-        console.log("Cells Appended to New Row:", newRow);
-
-        // Append the new row to the table body
-        console.log("tableBody before appending:", tableBody);
-        if (tableBody) {
-            tableBody.appendChild(newRow);
-            console.log("New Row Appended to tableBody:", newRow);
-        } else {
-            console.error("Error: tableBody is null. Check if #blockchainTable tbody exists in the HTML.");
-        }
-
-        // Update the table's date and time
-        updateDateTime();
-
-
-
-    // Function to update date and time for all transactions
-    function updateDateTime() {
-        const now = new Date();
-        const dateCells = document.querySelectorAll(".date");
-        const timeCells = document.querySelectorAll(".time");
-
-        dateCells.forEach(cell => {
-            cell.textContent = now.toLocaleDateString();
-        });
-
-        timeCells.forEach(cell => {
-            cell.textContent = now.toLocaleTimeString();
-        });
+// Function to add a new transaction
+function addTransaction(miner, coins) {
+    if (!miner || !coins) {
+        console.warn("Invalid transaction data.");
+        return;
     }
 
+    const now = new Date();
+    const transaction = {
+        miner,
+        coins: Number(coins), // Ensure it's stored as a number
+        date: now.toLocaleDateString(),
+        time: now.toLocaleTimeString(),
+    };
+
+    transactions.push(transaction);
+    localStorage.setItem("mempoolTransactions", JSON.stringify(transactions));
+
+    renderTransactions();
+}
+
+// If valid parameters are present, add the new transaction
+if (minerNumber && coinsTraded) {
+    addTransaction(minerNumber, coinsTraded);
+}
+
+// Render transactions when the page loads
+renderTransactions();
+updateMineCounter(); // Update the Mines counter
