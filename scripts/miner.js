@@ -13,5 +13,5 @@ function selectMiner(miner) {
   localStorage.setItem(`minerData_${miner}`, JSON.stringify(minerData));
 
   // Redirect to Blockchain page
-  window.location.href = "../Blockchain.html"; 
+  window.location.href = "../Main.html"; 
 }

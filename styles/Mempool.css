@@ -69,3 +69,29 @@ tr:hover {
   transform: scale(1.05);
   color: #ffd700;
 }
+
+#delete-transactions-btn {
+  background: #1e1e1e; /* Dark background */
+  color: white;
+  font-size: 1.2rem;
+  font-weight: bold;
+  padding: 15px 40px;
+  border: none;
+  border-radius: 10px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: 0.3s;
+  margin-top: 20px;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+}
+
+#delete-transactions-btn:hover {
+  background: #333; /* Hover effect */
+  transform: scale(1.05);
+  color: #ffd700; /* Gold color on hover */
+}
+
+#delete-button-container {
+  margin-top: 20px;
+  text-align: center;
+}

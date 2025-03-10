@@ -1,30 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Transactions Mempool</title>
-    <link rel="stylesheet" href="styles/Mempool.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blockchain Transactions</title>
+    <link rel="stylesheet" href="styles/Mempool.css"> 
 </head>
 <body>
 
-    <h1>Mempool Tracker</h1>
+    <h1>Blockchain Transactions</h1>
 
-    <!-- Display Mines Available for the Current Miner -->
-    <p><strong>Mines Available:</strong> <span id="mine-counter">0</span></p>
+    <p>Mines Available: <span id="mine-counter">0</span></p>
 
-    <table id="blockchainTable">
+    <table id="blockchainTable" border="1">
         <thead>
             <tr>
-                <th>Number</th>
-                <th>Miner #</th>
-                <th>Data</th>
+                <th>Select</th>
+                <th>#</th>
+                <th>Miner</th>
+                <th>Transaction Details</th>
                 <th>Date</th>
                 <th>Time</th>
             </tr>
         </thead>
         <tbody>
-            <!-- New transactions will be added here dynamically -->
+            <!-- Transactions will be dynamically inserted here -->
         </tbody>
     </table>
+
+    <!-- Button for deleting transactions (created dynamically in JS) -->
+    <div id="delete-button-container"></div>
 
     <script src="scripts/mempool.js"></script>
 
