@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Blockchain Ledger</title>
+  <link rel="stylesheet" href="styles/Blockchain.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Blockchain Ledger</h1>
+    <section>
+      <ul id="archived-list"></ul>
+    </section>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      function renderBlockchainLedger() {
+        const archivedList = document.getElementById("archived-list");
+        const blockchain = JSON.parse(localStorage.getItem("blockchainLedger")) || [];
+  
+        if (blockchain.length === 0) {
+          archivedList.innerHTML = "<li>No blocks have been mined yet.</li>";
+          return;
+        }
+  
+        archivedList.innerHTML = "";
+  
+        blockchain.forEach((block, i) => {
+          // Ensure block is valid
+          if (!block || !Array.isArray(block.transactions)) return;
+  
+          const blockWrapper = document.createElement("li");
+          blockWrapper.innerHTML = `
+            <div style="margin-bottom: 10px;">
+              <strong>Block #${block.index ?? i}</strong><br>
+              <small><strong>Timestamp:</strong> ${block.timestamp || "N/A"}</small><br>
+              <small><strong>Hash:</strong> ${block.hash || "N/A"}</small><br>
+              <small><strong>Prev Hash:</strong> ${block.previousHash || "N/A"}</small>
+            </div>
+          `;
+  
+          const txList = document.createElement("ul");
+          txList.style.marginTop = "8px";
+  
+          block.transactions.forEach(tx => {
+            const txItem = document.createElement("li");
+            txItem.textContent = tx;
+            txList.appendChild(txItem);
+          });
+  
+          blockWrapper.appendChild(txList);
+          archivedList.appendChild(blockWrapper);
+        });
+      }
+  
+      renderBlockchainLedger();
+    });
+  </script>
+  
+</body>
+</html>

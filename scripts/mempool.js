@@ -10,24 +10,18 @@ const tableBody = document.querySelector("#blockchainTable tbody");
 // Load existing transactions from localStorage
 let transactions = JSON.parse(localStorage.getItem("mempoolTransactions")) || [];
 
-// Load Mines for the current miner
 function getCurrentMinerMines() {
     let minersMines = JSON.parse(localStorage.getItem("minersMines")) || {};
     return minersMines[selectedMiner] || 0;
 }
 
-// Function to update the Mine counter on the page
 function updateMineCounter() {
     document.getElementById("mine-counter").innerText = getCurrentMinerMines();
 }
 
-// Function to render transactions from localStorage
 function renderTransactions() {
-    tableBody.innerHTML = ""; // Clear table before rendering
-
-    // Sort transactions in descending order by coin cost
+    tableBody.innerHTML = "";
     transactions.sort((a, b) => b.coins - a.coins);
-
     transactions.forEach((transaction, index) => {
         const newRow = document.createElement("tr");
         newRow.innerHTML = `
@@ -40,8 +34,6 @@ function renderTransactions() {
         `;
         tableBody.appendChild(newRow);
     });
-
-    // Ensure delete button visibility
     if (getCurrentMinerMines() > 0) {
         showDeleteButton();
     } else {
@@ -49,36 +41,52 @@ function renderTransactions() {
     }
 }
 
-// Function to add a new transaction (Original functionality remains untouched)
+function transactionToString(transaction, index) {
+    return `#${index + 1} | Miner #${transaction.miner} | Coins Traded: ${transaction.coins} | Date: ${transaction.date} | Time: ${transaction.time}`;
+}
+
 function addTransaction(miner, coins) {
-    if (!miner || !coins) {
-        console.warn("Invalid transaction data.");
-        return;
-    }
+    if (!miner || !coins) return;
 
     const now = new Date();
     const transaction = {
         miner,
-        coins: Number(coins), // Ensure it's stored as a number
+        coins: Number(coins),
         date: now.toLocaleDateString(),
         time: now.toLocaleTimeString(),
     };
 
     transactions.push(transaction);
     localStorage.setItem("mempoolTransactions", JSON.stringify(transactions));
-
     renderTransactions();
 }
 
-// If valid parameters are present, add the new transaction (Original behavior is intact)
-if (minerNumber && coinsTraded) {
-    addTransaction(minerNumber, coinsTraded);
+// ✅ SHA-256 hash function
+async function sha256(message) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(message);
+    const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    return hashHex;
 }
 
-// Function to delete selected transactions (up to 5) if the miner has at least 1 mine
-function deleteSelectedTransactions() {
-    let availableMines = getCurrentMinerMines();
+// ✅ Create a full block object
+async function createBlock(transactions, previousHash, index) {
+    const blockData = JSON.stringify(transactions) + previousHash;
+    const hash = await sha256(blockData);
+    return {
+        index,
+        timestamp: new Date().toISOString(),
+        transactions,
+        previousHash,
+        hash
+    };
+}
 
+// ✅ Delete (mine) transactions and store block
+async function deleteSelectedTransactions() {
+    let availableMines = getCurrentMinerMines();
     if (availableMines <= 0) {
         alert("You have no mines left to delete transactions.");
         return;
@@ -95,38 +103,44 @@ function deleteSelectedTransactions() {
         return;
     }
 
-    // Get selected indexes and remove from transactions array
-    const indexesToDelete = Array.from(checkboxes).map(cb => parseInt(cb.dataset.index));
-    transactions = transactions.filter((_, index) => !indexesToDelete.includes(index));
+    const blockchain = JSON.parse(localStorage.getItem("blockchainLedger")) || [];
+    const previousHash = blockchain.length > 0 ? blockchain[blockchain.length - 1].hash : "0";
 
-    // Deduct one mine from the miner
+    const indexesToDelete = Array.from(checkboxes)
+        .map(cb => parseInt(cb.dataset.index))
+        .sort((a, b) => b - a);
+
+    const minedTransactions = [];
+    indexesToDelete.forEach(index => {
+        const removed = transactions.splice(index, 1)[0];
+        const summary = transactionToString(removed, index);
+        minedTransactions.push(summary);
+    });
+
+    const newBlock = await createBlock(minedTransactions, previousHash, blockchain.length);
+    blockchain.push(newBlock);
+    localStorage.setItem("blockchainLedger", JSON.stringify(blockchain));
+
     let minersMines = JSON.parse(localStorage.getItem("minersMines")) || {};
-    minersMines[selectedMiner] = Math.max(0, minersMines[selectedMiner] - 1); // Prevent negative mines
+    minersMines[selectedMiner] = Math.max(0, minersMines[selectedMiner] - 1);
     localStorage.setItem("minersMines", JSON.stringify(minersMines));
 
-    // Update localStorage
     localStorage.setItem("mempoolTransactions", JSON.stringify(transactions));
-
-    // Re-render transactions and update the mine counter
     renderTransactions();
     updateMineCounter();
 }
 
-// Function to show delete button for miners with at least one mine
 function showDeleteButton() {
     let deleteButton = document.getElementById("delete-transactions-btn");
-
     if (!deleteButton) {
         deleteButton = document.createElement("button");
         deleteButton.id = "delete-transactions-btn";
         deleteButton.innerText = "Mine Transactions (Max 5)";
         deleteButton.onclick = deleteSelectedTransactions;
-
         document.getElementById("delete-button-container").appendChild(deleteButton);
     }
 }
 
-// Function to remove the delete button if the miner has no mines left
 function removeDeleteButton() {
     let deleteButton = document.getElementById("delete-transactions-btn");
     if (deleteButton) {
@@ -134,6 +148,9 @@ function removeDeleteButton() {
     }
 }
 
-// Render transactions when the page loads (Restores original behavior)
+if (minerNumber && coinsTraded) {
+    addTransaction(minerNumber, coinsTraded);
+}
+
 renderTransactions();
 updateMineCounter();

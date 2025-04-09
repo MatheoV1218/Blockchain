@@ -38,7 +38,7 @@ updateParticipantsUI();
 document.getElementById("stake-btn").addEventListener("click", function() {
     let stakeAmount = parseInt(document.getElementById("stake-amount").value);
 
-    if (isNaN(stakeAmount) || stakeAmount <= 0) {
+    if (isNaN(stakeAmount) || stakeAmount < 10) {
         alert("Please enter a valid stake amount.");
         return;
     }
