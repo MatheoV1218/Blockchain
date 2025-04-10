@@ -102,3 +102,46 @@ input:focus {
   font-weight: bold;
   color: #ffd700; /* Gold color for the winner */
 }
+.menu
+{
+  font-family: 'Montserrat', sans-serif;
+  background: transparent;
+  color: #ffffff;
+  display: flex;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  border-radius: 5px;
+  padding: 10px;
+  cursor: pointer;
+}
+
+
+.menu .content
+{
+  display: none;
+  position: absolute;
+  right:0;
+  background:#333;
+  min-width: 150px;
+  border-radius:5px;
+  box-shadow: 2px 2px 5px black;
+  padding: 5px 0;
+  margin-top:10px
+}
+.menu .content a
+{
+ display: block;
+ text-decoration: none;
+ padding:10px 15px;
+ color:#ffffff
+}
+
+.menu .content a:hover
+{
+  color: #ffd700;
+}
+
+.menu:hover .content{
+  display: block;
+}
