@@ -1,65 +1,58 @@
 // Retrieve selected miner
-const selectedMiner = localStorage.getItem("selectedMiner");
-
-// Select the table body for transactions
-const urlParams = new URLSearchParams(window.location.search);
-const minerNumber = urlParams.get("miner");
-const coinsTraded = urlParams.get("coins");
-const tableBody = document.querySelector("#blockchainTable tbody");
-
-// Load existing transactions from localStorage
-let transactions = JSON.parse(localStorage.getItem("mempoolTransactions")) || [];
-
-function getCurrentMinerMines() {
-    let minersMines = JSON.parse(localStorage.getItem("minersMines")) || {};
-    return minersMines[selectedMiner] || 0;
-}
-
-function updateMineCounter() {
-    document.getElementById("mine-counter").innerText = getCurrentMinerMines();
-}
-
-function renderTransactions() {
-    tableBody.innerHTML = "";
-    transactions.sort((a, b) => b.coins - a.coins);
-    transactions.forEach((transaction, index) => {
-        const newRow = document.createElement("tr");
-        newRow.innerHTML = `
-            <td><input type="checkbox" class="transaction-checkbox" data-index="${index}"></td>
-            <td>${index + 1}</td>
-            <td>${transaction.miner}</td>
-            <td>Coins Traded: ${transaction.coins}</td>
-            <td class="date">${transaction.date}</td>
-            <td class="time">${transaction.time}</td>
+// Retrieve the selected miner from localStorage (this can remain if you still need to persist wallet data)
+document.addEventListener("DOMContentLoaded", () => {
+    console.log("DOM fully loaded – initializing mempool display.");
+  
+    // Initialize Gun (make sure the Gun script is loaded before this script in your HTML)
+    const gun = Gun('http://localhost:3000/gun');
+    const mempoolGun = gun.get('mempoolTransactions');
+  
+    // Local array to hold the pending transactions received via Gun
+    let transactions = [];
+  
+    // Function to render transactions in the mempool table
+    function renderMempool() {
+      const tableBody = document.querySelector("#blockchainTable tbody");
+      if (!tableBody) {
+        console.error("Could not find the table body element.");
+        return;
+      }
+      
+      // Clear the table
+      tableBody.innerHTML = "";
+      
+      // Loop through each transaction and add a row to the table
+      transactions.forEach((tx, index) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${index + 1}</td>
+          <td>${tx.miner}</td>
+          <td>${tx.coins}</td>
+          <td>${tx.date}</td>
+          <td>${tx.time}</td>
         `;
-        tableBody.appendChild(newRow);
-    });
-    if (getCurrentMinerMines() > 0) {
-        showDeleteButton();
-    } else {
-        removeDeleteButton();
+        tableBody.appendChild(row);
+      });
     }
-}
-
-function transactionToString(transaction, index) {
-    return `#${index + 1} | Miner #${transaction.miner} | Coins Traded: ${transaction.coins} | Date: ${transaction.date} | Time: ${transaction.time}`;
-}
-
-function addTransaction(miner, coins) {
-    if (!miner || !coins) return;
-
-    const now = new Date();
-    const transaction = {
-        miner,
-        coins: Number(coins),
-        date: now.toLocaleDateString(),
-        time: now.toLocaleTimeString(),
-    };
-
-    transactions.push(transaction);
-    localStorage.setItem("mempoolTransactions", JSON.stringify(transactions));
-    renderTransactions();
-}
+  
+    // Subscribe to the mempoolTransactions node in Gun.
+    // Every time a new transaction is pushed (from trade.js), this callback will execute.
+    mempoolGun.map().on(data => {
+      if (data) {
+        // Use the unique timestamp to avoid adding duplicate transactions.
+        if (!transactions.some(tx => tx.timestamp === data.timestamp)) {
+          transactions.push(data);
+          console.log("New transaction received:", data);
+          renderMempool();
+        }
+      }
+    });
+  
+    // Initial render in case there are already transactions (Gun may load any persisted ones)
+    renderMempool();
+  });
+  
+  
 
 // ✅ SHA-256 hash function
 async function sha256(message) {
