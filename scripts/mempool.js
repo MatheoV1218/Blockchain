@@ -1,67 +1,69 @@
-// Retrieve selected miner
-// Retrieve the selected miner from localStorage (this can remain if you still need to persist wallet data)
+const selectedMiner = localStorage.getItem("selectedMiner");
+let transactions = [];
+
+function getCurrentMinerMines() {
+    let minersMines = JSON.parse(localStorage.getItem("minersMines")) || {};
+    return minersMines[selectedMiner] || 0;
+}
+
+function updateMineCounter() {
+    const mines = getCurrentMinerMines();
+    document.getElementById("mine-counter").innerText = mines;
+
+    if (mines > 0) {
+        showDeleteButton();
+    } else {
+        removeDeleteButton();
+    }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
-  console.log("DOM fully loaded – initializing decentralized mempool display.");
+    console.log("DOM fully loaded – initializing decentralized mempool display.");
 
-  // Initialize Gun with both server peers
-  const gun = Gun({
-    peers: [
-      'http://localhost:3000/gun',
-      'http://192.168.1.10:3000/gun'
-    ]
-  });
+    const gun = Gun({ peers: ['http://localhost:3000/gun'] });
+    const mempoolGun = gun.get('mempoolTransactions');
 
-  // Get the shared Gun node for mempool transactions
-  const mempoolGun = gun.get('mempoolTransactions');
+    function renderMempool() {
+        const tableBody = document.querySelector("#blockchainTable tbody");
+        if (!tableBody) return;
 
-  // Local array to keep all received transactions
-  let transactions = [];
+        tableBody.innerHTML = "";
 
-  // Function to render transactions from the mempool
-  function renderMempool() {
-    const tableBody = document.querySelector("#blockchainTable tbody");
-    if (!tableBody) {
-      console.error("Could not find the table body element.");
-      return;
+        transactions.forEach((tx, index) => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td><input type="checkbox" class="transaction-checkbox" data-index="${index}"></td>
+                <td>${index + 1}</td>
+                <td>${tx.miner}</td>
+                <td>Coins Traded: ${tx.coins}</td>
+                <td>${tx.date}</td>
+                <td>${tx.time}</td>
+            `;
+            tableBody.appendChild(row);
+        });
     }
-    // Clear the table body
-    tableBody.innerHTML = "";
-    
-    // Add a new row for each transaction
-    transactions.forEach((tx, index) => {
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td>${index + 1}</td>
-        <td>${tx.miner}</td>
-        <td>${tx.coins}</td>
-        <td>${tx.date}</td>
-        <td>${tx.time}</td>
-      `;
-      tableBody.appendChild(row);
+
+    // ✅ Prevent mined transactions from being added
+    mempoolGun.map().on(data => {
+        if (data && data.timestamp) {
+            const alreadyMined = JSON.parse(localStorage.getItem("minedTransactionTimestamps")) || [];
+
+            // ✅ Skip if already mined
+            if (alreadyMined.includes(data.timestamp)) return;
+
+            // ✅ Skip if already in local array
+            if (!transactions.some(tx => tx.timestamp === data.timestamp)) {
+                transactions.push(data);
+                console.log("New transaction received:", data);
+                renderMempool();
+            }
+        }
     });
-  }
 
-  // Subscribe to new transactions from the Gun node.
-  // This will be invoked every time a transaction is added by any node.
-  mempoolGun.map().on(data => {
-    if (data) {
-      // Use the unique timestamp to avoid duplicates
-      if (!transactions.some(tx => tx.timestamp === data.timestamp)) {
-        transactions.push(data);
-        console.log("New transaction received:", data);
-        renderMempool();
-      }
-    }
-  });
-
-  // Do an initial render in case there are persisted transactions
-  renderMempool();
+    renderMempool();
+    updateMineCounter();
 });
 
-  
-  
-
-// ✅ SHA-256 hash function
 async function sha256(message) {
     const encoder = new TextEncoder();
     const data = encoder.encode(message);
@@ -71,7 +73,6 @@ async function sha256(message) {
     return hashHex;
 }
 
-// ✅ Create a full block object
 async function createBlock(transactions, previousHash, index) {
     const blockData = JSON.stringify(transactions) + previousHash;
     const hash = await sha256(blockData);
@@ -84,8 +85,9 @@ async function createBlock(transactions, previousHash, index) {
     };
 }
 
-// ✅ Delete (mine) transactions and store block
 async function deleteSelectedTransactions() {
+    console.log("Delete button clicked.");
+
     let availableMines = getCurrentMinerMines();
     if (availableMines <= 0) {
         alert("You have no mines left to delete transactions.");
@@ -111,10 +113,15 @@ async function deleteSelectedTransactions() {
         .sort((a, b) => b - a);
 
     const minedTransactions = [];
+    const minedTimestamps = [];
+
     indexesToDelete.forEach(index => {
-        const removed = transactions.splice(index, 1)[0];
-        const summary = transactionToString(removed, index);
-        minedTransactions.push(summary);
+        const removed = transactions[index];
+        if (removed) {
+            const summary = transactionToString(removed, index);
+            minedTransactions.push(summary);
+            minedTimestamps.push(removed.timestamp);
+        }
     });
 
     const newBlock = await createBlock(minedTransactions, previousHash, blockchain.length);
@@ -125,9 +132,20 @@ async function deleteSelectedTransactions() {
     minersMines[selectedMiner] = Math.max(0, minersMines[selectedMiner] - 1);
     localStorage.setItem("minersMines", JSON.stringify(minersMines));
 
-    localStorage.setItem("mempoolTransactions", JSON.stringify(transactions));
-    renderTransactions();
+    // ✅ Save timestamps of mined transactions to filter them next time
+    let alreadyMined = JSON.parse(localStorage.getItem("minedTransactionTimestamps")) || [];
+    const updatedMined = [...alreadyMined, ...minedTimestamps];
+    localStorage.setItem("minedTransactionTimestamps", JSON.stringify(updatedMined));
+
+    // ✅ Remove them from current array
+    transactions = transactions.filter(tx => !minedTimestamps.includes(tx.timestamp));
+
+    renderMempool();
     updateMineCounter();
+}
+
+function transactionToString(tx, index) {
+    return `#${index + 1} | Miner #${tx.miner} | Coins Traded: ${tx.coins} | Date: ${tx.date} | Time: ${tx.time}`;
 }
 
 function showDeleteButton() {
@@ -147,10 +165,3 @@ function removeDeleteButton() {
         deleteButton.remove();
     }
 }
-
-if (minerNumber && coinsTraded) {
-    addTransaction(minerNumber, coinsTraded);
-}
-
-renderTransactions();
-updateMineCounter();

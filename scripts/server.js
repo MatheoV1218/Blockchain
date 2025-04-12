@@ -19,7 +19,6 @@ const server = app.listen(PORT, () => {
 const gun = Gun({
   web: server, // Use the existing Express server
   peers: [
-    'http://localhost:3000/gun',
-    'http://192.168.1.10:3000/gun'
+    'http://localhost:3000/gun'
   ]
 });
