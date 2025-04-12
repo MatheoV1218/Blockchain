@@ -1,56 +1,63 @@
 // Retrieve selected miner
 // Retrieve the selected miner from localStorage (this can remain if you still need to persist wallet data)
 document.addEventListener("DOMContentLoaded", () => {
-    console.log("DOM fully loaded – initializing mempool display.");
-  
-    // Initialize Gun (make sure the Gun script is loaded before this script in your HTML)
-    const gun = Gun('http://localhost:3000/gun');
-    const mempoolGun = gun.get('mempoolTransactions');
-  
-    // Local array to hold the pending transactions received via Gun
-    let transactions = [];
-  
-    // Function to render transactions in the mempool table
-    function renderMempool() {
-      const tableBody = document.querySelector("#blockchainTable tbody");
-      if (!tableBody) {
-        console.error("Could not find the table body element.");
-        return;
-      }
-      
-      // Clear the table
-      tableBody.innerHTML = "";
-      
-      // Loop through each transaction and add a row to the table
-      transactions.forEach((tx, index) => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${index + 1}</td>
-          <td>${tx.miner}</td>
-          <td>${tx.coins}</td>
-          <td>${tx.date}</td>
-          <td>${tx.time}</td>
-        `;
-        tableBody.appendChild(row);
-      });
-    }
-  
-    // Subscribe to the mempoolTransactions node in Gun.
-    // Every time a new transaction is pushed (from trade.js), this callback will execute.
-    mempoolGun.map().on(data => {
-      if (data) {
-        // Use the unique timestamp to avoid adding duplicate transactions.
-        if (!transactions.some(tx => tx.timestamp === data.timestamp)) {
-          transactions.push(data);
-          console.log("New transaction received:", data);
-          renderMempool();
-        }
-      }
-    });
-  
-    // Initial render in case there are already transactions (Gun may load any persisted ones)
-    renderMempool();
+  console.log("DOM fully loaded – initializing decentralized mempool display.");
+
+  // Initialize Gun with both server peers
+  const gun = Gun({
+    peers: [
+      'http://localhost:3000/gun',
+      'http://192.168.1.10:3000/gun'
+    ]
   });
+
+  // Get the shared Gun node for mempool transactions
+  const mempoolGun = gun.get('mempoolTransactions');
+
+  // Local array to keep all received transactions
+  let transactions = [];
+
+  // Function to render transactions from the mempool
+  function renderMempool() {
+    const tableBody = document.querySelector("#blockchainTable tbody");
+    if (!tableBody) {
+      console.error("Could not find the table body element.");
+      return;
+    }
+    // Clear the table body
+    tableBody.innerHTML = "";
+    
+    // Add a new row for each transaction
+    transactions.forEach((tx, index) => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${index + 1}</td>
+        <td>${tx.miner}</td>
+        <td>${tx.coins}</td>
+        <td>${tx.date}</td>
+        <td>${tx.time}</td>
+      `;
+      tableBody.appendChild(row);
+    });
+  }
+
+  // Subscribe to new transactions from the Gun node.
+  // This will be invoked every time a transaction is added by any node.
+  mempoolGun.map().on(data => {
+    if (data) {
+      // Use the unique timestamp to avoid duplicates
+      if (!transactions.some(tx => tx.timestamp === data.timestamp)) {
+        transactions.push(data);
+        console.log("New transaction received:", data);
+        renderMempool();
+      }
+    }
+  });
+
+  // Do an initial render in case there are persisted transactions
+  renderMempool();
+});
+
   
   
 
