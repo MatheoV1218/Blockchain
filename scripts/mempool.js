@@ -17,6 +17,25 @@ document.addEventListener("DOMContentLoaded", () => {
       let minersMines = JSON.parse(localStorage.getItem("minersMines")) || {};
       if (minersMines[selectedMiner] === undefined) {
         minersMines[selectedMiner] = 5;
+document.addEventListener("DOMContentLoaded", () => {
+    console.log("DOM fully loaded – initializing decentralized mempool display.");
+  
+    const selectedMiner = localStorage.getItem("selectedMiner");
+    let transactions = [];
+    let globalMined = [];
+  
+    const gun = Gun({ 
+      peers: ['http://localhost:3000/gun', 'http://192.168.1.172:3000/gun'] 
+    });
+  
+    const mempoolGun = gun.get('mempoolTransactions');
+    const minedTxGun = gun.get('minedTransactions');
+    const blockchainGun = gun.get('blockchainLedger');
+  
+    function getCurrentMinerMines() {
+      let minersMines = JSON.parse(localStorage.getItem("minersMines")) || {};
+      if (minersMines[selectedMiner] === undefined) {
+        minersMines[selectedMiner] = 5;
         localStorage.setItem("minersMines", JSON.stringify(minersMines));
       }
       return minersMines[selectedMiner];

@@ -21,5 +21,6 @@ const gun = Gun({
   peers: [
     'http://localhost:3000/gun',
     'http://192.168.1.10:3000/gun'
+    'http://192.168.1.172:3000/gun'
   ]
 });
