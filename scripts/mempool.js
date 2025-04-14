@@ -10,7 +10,11 @@ document.addEventListener("DOMContentLoaded", () => {
   
     // Initialize Gun with both peer endpoints
     const gun = Gun({ 
-      peers: ['http://localhost:3000/gun', 'http://192.168.1.10:3000/gun'] 
+      peers: ['http://localhost:3000/gun'
+               //, 'http://149.61.227.220:3000/gun' (Matheo's IP), 
+              // 'http://149.61.211.129:3000/gun'(Edward's IP), 
+              // 'http://149.61.248.174:3000/gun' (Ardion's IP)] 
+             ]
     });
   
     // Set up Gun nodes
@@ -50,10 +54,15 @@ document.addEventListener("DOMContentLoaded", () => {
         console.error("Table body not found.");
         return;
       }
+    
+      // Create a filtered array with only the transactions that have not been mined.
+      const visibleTransactions = transactions.filter(tx => !globalMined.includes(tx.timestamp));
+    
+      // Clear the table body.
       tableBody.innerHTML = "";
-      transactions.forEach((tx, index) => {
-        // Skip if transaction is globally mined.
-        if (globalMined.includes(tx.timestamp)) return;
+    
+      // Render visible transactions with a new, continuous index.
+      visibleTransactions.forEach((tx, index) => {
         const row = document.createElement("tr");
         row.innerHTML = `
           <td><input type="checkbox" class="transaction-checkbox" data-index="${index}"></td>
@@ -66,6 +75,7 @@ document.addEventListener("DOMContentLoaded", () => {
         tableBody.appendChild(row);
       });
     }
+    
   
     // Show Mine Transaction button.
     function showMineButton() {
