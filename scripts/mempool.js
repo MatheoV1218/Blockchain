@@ -1,29 +1,41 @@
 document.addEventListener("DOMContentLoaded", () => {
     console.log("DOM fully loaded – initializing decentralized mempool display.");
   
+    // Retrieve the selected miner from localStorage
     const selectedMiner = localStorage.getItem("selectedMiner");
-    let transactions = [];
-    let globalMined = [];
   
+    // Initialize local arrays
+    let transactions = [];
+    let globalMined = []; // Will be updated in real time from Gun
+  
+    // Initialize Gun with both peer endpoints
     const gun = Gun({ 
-      peers: ['http://localhost:3000/gun', 'http://192.168.1.172:3000/gun'] 
+      peers: ['http://localhost:3000/gun'
+               //, 'http://149.61.227.220:3000/gun' (Matheo's IP), 
+              // 'http://149.61.211.129:3000/gun'(Edward's IP), 
+              // 'http://149.61.248.174:3000/gun' (Ardion's IP)] 
+             ]
     });
   
+    // Set up Gun nodes
     const mempoolGun = gun.get('mempoolTransactions');
     const minedTxGun = gun.get('minedTransactions');
-    const blockchainGun = gun.get('blockchainLedger');
+    const blockchainGun = gun.get('blockchainLedger'); // Node for blockchain ledger
   
+    // Helper: Get current available mines and initialize if needed.
     function getCurrentMinerMines() {
       let minersMines = JSON.parse(localStorage.getItem("minersMines")) || {};
       if (minersMines[selectedMiner] === undefined) {
-        minersMines[selectedMiner] = 5;
+        minersMines[selectedMiner] = 5;  // Default starting mines value
         localStorage.setItem("minersMines", JSON.stringify(minersMines));
       }
       return minersMines[selectedMiner];
     }
   
+    // Helper: Update mine counter display and toggle Mine button.
     function updateMineCounter() {
       const mines = getCurrentMinerMines();
+      console.log("updateMineCounter -> mines:", mines);
       const mineCounterElem = document.getElementById("mine-counter");
       if (mineCounterElem) {
         mineCounterElem.innerText = mines;
@@ -35,13 +47,22 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
   
+    // Render mempool transactions in table.
     function renderMempool() {
       const tableBody = document.querySelector("#blockchainTable tbody");
-      if (!tableBody) return;
+      if (!tableBody) {
+        console.error("Table body not found.");
+        return;
+      }
+    
+      // Create a filtered array with only the transactions that have not been mined.
+      const visibleTransactions = transactions.filter(tx => !globalMined.includes(tx.timestamp));
+    
+      // Clear the table body.
       tableBody.innerHTML = "";
-  
-      transactions.forEach((tx, index) => {
-        if (globalMined.includes(tx.timestamp)) return;
+    
+      // Render visible transactions with a new, continuous index.
+      visibleTransactions.forEach((tx, index) => {
         const row = document.createElement("tr");
         row.innerHTML = `
           <td><input type="checkbox" class="transaction-checkbox" data-index="${index}"></td>
@@ -54,7 +75,9 @@ document.addEventListener("DOMContentLoaded", () => {
         tableBody.appendChild(row);
       });
     }
+    
   
+    // Show Mine Transaction button.
     function showMineButton() {
       let mineButton = document.getElementById("mine-transaction-btn");
       if (!mineButton) {
@@ -67,6 +90,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
   
+    // Remove Mine Transaction button.
     function removeMineButton() {
       let mineButton = document.getElementById("mine-transaction-btn");
       if (mineButton) {
@@ -74,18 +98,22 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
   
+    // Convert a transaction object into a summary string.
     function transactionToString(tx, index) {
       return `#${index + 1} | Miner #${tx.miner} | Coins Traded: ${tx.coins} | Date: ${tx.date} | Time: ${tx.time}`;
     }
   
+    // SHA-256 helper function.
     async function sha256(message) {
       const encoder = new TextEncoder();
       const data = encoder.encode(message);
       const hashBuffer = await crypto.subtle.digest("SHA-256", data);
       const hashArray = Array.from(new Uint8Array(hashBuffer));
-      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      return hashHex;
     }
   
+    // Create a new block object from transactions.
     async function createBlock(transactionsSummary, previousHash, index) {
         const blockData = JSON.stringify(transactionsSummary) + previousHash;
         const hash = await sha256(blockData);
@@ -184,6 +212,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (data && data.timestamp) {
         if (!transactions.some(tx => tx.timestamp === data.timestamp)) {
           transactions.push(data);
+          console.log("New transaction received:", data);
           renderMempool();
         }
       }
@@ -193,11 +222,13 @@ document.addEventListener("DOMContentLoaded", () => {
       if (minedData && minedData.timestamp) {
         if (!globalMined.includes(minedData.timestamp)) {
           globalMined.push(minedData.timestamp);
+          console.log("Global mined transaction received:", minedData.timestamp);
           renderMempool();
         }
       }
     });
   
+    // Initial render.
     renderMempool();
     updateMineCounter();
   });
