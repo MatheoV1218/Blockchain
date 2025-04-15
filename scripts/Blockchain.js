@@ -7,6 +7,8 @@ document.addEventListener("DOMContentLoaded", () => {
     //, 'http://149.61.227.220:3000/gun' (Matheo's IP), 
     // 'http://149.61.211.129:3000/gun'(Edward's IP), 
     // 'http://149.61.248.174:3000/gun' (Ardion's IP)] 
+    
+
   ]);
 
   // Get the Gun node for the blockchain ledger.
