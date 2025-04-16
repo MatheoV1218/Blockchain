@@ -23,7 +23,7 @@ const gun = Gun({
     //, 'http://149.61.227.220:3000/gun' (Matheo's IP), 
     // 'http://149.61.211.129:3000/gun'(Edward's IP), 
     // 'http://149.61.248.174:3000/gun' (Ardion's IP)] 
-    
+    'http://192.168.1.107:3000/gun'
 
   ]
 });

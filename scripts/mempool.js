@@ -1,34 +1,38 @@
 document.addEventListener("DOMContentLoaded", () => {
-  console.log("DOM fully loaded – initializing decentralized mempool display.");
+  console.log("DOM fully loaded – initializing mempool (Option 2: Using references).");
 
-  // Retrieve the selected miner from localStorage
-  const selectedMiner = localStorage.getItem("selectedMiner");
+  // Retrieve the selected miner from localStorage; default to "Miner1" if not set.
+  const selectedMiner = localStorage.getItem("selectedMiner") || "Miner1";
 
-  // Local arrays to store incoming transactions and mined transaction timestamps.
+  // Local arrays for all transactions and for storing timestamps of transactions that have been mined.
   let transactions = [];
-  let globalMined = []; // Contains timestamps for transactions that have been mined
+  let globalMined = [];
 
-  // Initialize Gun with your peer endpoints
+  // Initialize Gun with your peer endpoints (adjust as needed)
   const gun = Gun({
-    peers: ['http://localhost:3000/gun']
+    peers: [
+      'http://localhost:3000/gun',
+      'http://192.168.1.107:3000/gun'
+    ]
   });
 
-  // Set up Gun nodes:
+  // Get the Gun nodes.
   const mempoolGun = gun.get('mempoolTransactions');
   const minedTxGun = gun.get('minedTransactions');
-  const blockchainGun = gun.get('blockchainLedger'); // For storing mined blocks
+  const blockchainGun = gun.get('blockchainLedger');
 
-  // Helper: Get (and initialize if needed) the current miner's available mines.
+  // Get or initialize the miner’s available mines.
   function getCurrentMinerMines() {
     let minersMines = JSON.parse(localStorage.getItem("minersMines")) || {};
     if (minersMines[selectedMiner] === undefined) {
-      minersMines[selectedMiner] = 5; // Default starting mines value
+      // Set initial maximum mines to 5.
+      minersMines[selectedMiner] = 5;
       localStorage.setItem("minersMines", JSON.stringify(minersMines));
     }
     return minersMines[selectedMiner];
   }
 
-  // Update the mine counter display and toggle the Mine button.
+  // Update the displayed mine counter and show/hide the Mine button accordingly.
   function updateMineCounter() {
     const mines = getCurrentMinerMines();
     console.log("updateMineCounter -> mines:", mines);
@@ -43,17 +47,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Render the mempool transactions in a sequential, gap-free order.
+  // Render the mempool transactions as a gap-free, sequential list.
   function renderMempool() {
     const tableBody = document.querySelector("#blockchainTable tbody");
-    if (!tableBody) {
-      console.error("Table body not found.");
-      return;
-    }
-    // Filter out transactions that have already been mined.
+    if (!tableBody) return;
+    // Filter out transactions that have been mined.
     const visibleTransactions = transactions.filter(tx => !globalMined.includes(tx.timestamp));
     tableBody.innerHTML = "";
-    // Render each visible transaction with a new index (1, 2, 3, ...).
     visibleTransactions.forEach((tx, index) => {
       const row = document.createElement("tr");
       row.innerHTML = `
@@ -70,24 +70,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Show the Mine Transaction button.
   function showMineButton() {
-    let btn = document.getElementById("mine-transaction-btn");
-    if (!btn) {
-      btn = document.createElement("button");
-      btn.id = "mine-transaction-btn";
-      btn.innerText = "Mine Transaction";
-      btn.onclick = mineSelectedTransaction;
+    let mineButton = document.getElementById("mine-transaction-btn");
+    if (!mineButton) {
+      mineButton = document.createElement("button");
+      mineButton.id = "mine-transaction-btn";
+      mineButton.innerText = "Mine Selected Transaction(s)";
+      mineButton.onclick = mineSelectedTransactions;
       const container = document.getElementById("delete-button-container");
-      if (container) {
-        container.appendChild(btn);
-      }
+      if (container) container.appendChild(mineButton);
     }
   }
 
   // Remove the Mine Transaction button.
   function removeMineButton() {
-    const btn = document.getElementById("mine-transaction-btn");
-    if (btn) {
-      btn.remove();
+    const mineButton = document.getElementById("mine-transaction-btn");
+    if (mineButton) {
+      mineButton.remove();
     }
   }
 
@@ -100,104 +98,112 @@ document.addEventListener("DOMContentLoaded", () => {
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
   }
 
-  // Create a new block from an array of transaction objects.
-  // Because Gun does not allow top-level arrays in .put(), we convert the array to an object.
+  // Create a new block with transaction references.
   async function createBlock(txArray, previousHash, index) {
     const blockData = JSON.stringify(txArray) + previousHash;
     const hash = await sha256(blockData);
-    const txObject = txArray.reduce((acc, tx, i) => {
-      acc[i] = tx;
-      return acc;
-    }, {});
+    const transactionsReferences = {};
+
+    // For each transaction, create a Gun node and store its reference (soul).
+    txArray.forEach((tx, i) => {
+      // Construct a unique path for each transaction.
+      const txPath = `blockchainLedger/${index}/transactions/${i}`;
+      const txRef = gun.get(txPath);
+      txRef.put(tx);
+      // Save the reference key (soul) in the block.
+      transactionsReferences[i] = txRef._.soul;
+    });
+
     return {
-      index: index,
+      index,
       timestamp: new Date().toISOString(),
-      transactions: txObject,
-      previousHash: previousHash,
-      hash: hash
+      transactions: transactionsReferences, // store the references
+      previousHash,
+      hash,
+      minedBy: selectedMiner
     };
   }
 
-  // Get the latest block from Gun's blockchainLedger node.
+  // Get the latest block from Gun.
   function getLatestBlock() {
     return new Promise(resolve => {
       let latest = null;
-      blockchainGun.map().once(data => {
-        if (data && typeof data.index === "number") {
-          if (!latest || data.index > latest.index) {
-            latest = data;
+      blockchainGun.map().once(block => {
+        if (block && typeof block.index === "number") {
+          if (!latest || block.index > latest.index) {
+            latest = block;
           }
         }
       });
-      setTimeout(() => {
-        resolve(latest);
-      }, 500); // Adjust the timeout according to network conditions
+      setTimeout(() => resolve(latest), 500);
     });
   }
 
-  // Mine the selected transaction.
-  async function mineSelectedTransaction() {
-    console.log("🔨 Mine Transaction button clicked");
-
+  // Mine the selected transactions (allow 1 to 5 selections).
+  async function mineSelectedTransactions() {
+    console.log("🔨 Mine Transaction button clicked.");
     const availableMines = getCurrentMinerMines();
     if (availableMines <= 0) {
-      alert("You have no mines left to delete transactions.");
+      alert("No mines left.");
       return;
     }
-
-    // Use the visible transactions array for sequential ordering.
-    const visibleTransactions = transactions.filter(tx => !globalMined.includes(tx.timestamp));
     const checkboxes = document.querySelectorAll(".transaction-checkbox:checked");
-    if (checkboxes.length !== 1) {
-      alert("Please select exactly one transaction to mine.");
+    if (checkboxes.length < 1) {
+      alert("Select at least one transaction.");
       return;
     }
-    const visibleIndex = parseInt(checkboxes[0].dataset.index);
-    const transactionToMine = visibleTransactions[visibleIndex];
-    if (!transactionToMine) {
-      alert("Selected transaction not found.");
+    if (checkboxes.length > 5) {
+      alert("You can only mine up to 5 transactions at once.");
       return;
     }
-    console.log("Transaction to mine:", transactionToMine);
-
+    if (checkboxes.length > availableMines) {
+      alert(`You have only ${availableMines} mine(s) left. Choose fewer transactions.`);
+      return;
+    }
+    const visibleTransactions = transactions.filter(tx => !globalMined.includes(tx.timestamp));
+    let transactionsToMine = [];
+    checkboxes.forEach(cb => {
+      const idx = parseInt(cb.dataset.index);
+      if (visibleTransactions[idx]) {
+        transactionsToMine.push(visibleTransactions[idx]);
+      }
+    });
+    if (transactionsToMine.length === 0) {
+      alert("No valid transactions selected.");
+      return;
+    }
+    console.log("Transactions to mine:", transactionsToMine);
     const latestBlock = await getLatestBlock();
     const previousHash = latestBlock ? latestBlock.hash : "0";
     const newIndex = latestBlock ? latestBlock.index + 1 : 0;
-
-    // Create a new block that stores the full transaction object.
-    const newBlock = await createBlock([transactionToMine], previousHash, newIndex);
+    // Create a new block using the transaction references.
+    const newBlock = await createBlock(transactionsToMine, previousHash, newIndex);
     console.log("✅ Created new block:", newBlock);
-
-    // (Optional) Save a backup in localStorage.
-    let localBlockchain = JSON.parse(localStorage.getItem("blockchainLedger")) || [];
-    localBlockchain.push(newBlock);
-    localStorage.setItem("blockchainLedger", JSON.stringify(localBlockchain));
-
-    // Update the miner's available mines locally.
+    // Optional: Save the block locally.
+    let localChain = JSON.parse(localStorage.getItem("blockchainLedger")) || [];
+    localChain.push(newBlock);
+    localStorage.setItem("blockchainLedger", JSON.stringify(localChain));
+    // Decrement available mines.
     let minersMines = JSON.parse(localStorage.getItem("minersMines")) || {};
-    minersMines[selectedMiner] = Math.max(0, minersMines[selectedMiner] - 1);
+    minersMines[selectedMiner] = Math.max(0, minersMines[selectedMiner] - transactionsToMine.length);
     localStorage.setItem("minersMines", JSON.stringify(minersMines));
-
-    // Publish the mined transaction's timestamp for mempool sync.
-    minedTxGun.set({ timestamp: transactionToMine.timestamp });
-
-    // Push the new block to Gun under its numeric index.
+    // Notify other mempool pages of the mined transactions.
+    transactionsToMine.forEach(tx => {
+      minedTxGun.set({ timestamp: tx.timestamp });
+    });
+    // Push the new block to Gun.
     console.log("🚀 Pushing block to Gun with index:", newBlock.index);
     blockchainGun.get(newBlock.index.toString()).put(newBlock, ack => {
-      if (ack.err) {
-        console.error("❌ Gun put failed:", ack.err);
-      } else {
-        console.log("✅ Gun put success at index:", newBlock.index);
-      }
+      if (ack.err) console.error("❌ Gun put failed:", ack.err);
+      else console.log("✅ Block stored at index:", newBlock.index);
     });
-
-    // Remove the mined transaction from the transactions array.
-    transactions = transactions.filter(tx => tx.timestamp !== transactionToMine.timestamp);
+    // Remove mined transactions from our local transactions.
+    transactions = transactions.filter(tx => !transactionsToMine.some(t => t.timestamp === tx.timestamp));
     renderMempool();
     updateMineCounter();
   }
 
-  // Subscribe to new mempool transactions.
+  // Subscribe to new transactions from the mempool.
   mempoolGun.map().on(data => {
     if (data && data.timestamp) {
       if (!transactions.some(tx => tx.timestamp === data.timestamp)) {
@@ -219,7 +225,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Initial render and mine counter update.
+  // Initial render.
   renderMempool();
   updateMineCounter();
 });
