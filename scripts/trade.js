@@ -1,59 +1,63 @@
-// Retrieve the selected miner from localStorage (this can remain if you still need to persist wallet data)
+// Retrieve the selected miner
 const selectedMiner = localStorage.getItem("selectedMiner");
 
-// Load wallet data specific to the selected miner
+// Load wallet data
 let wallet = JSON.parse(localStorage.getItem(`minerData_${selectedMiner}_wallet`)) || {
-    transactions: 0,
-    coins: 0,
-    nfts: 0
+  transactions: 0,
+  coins: 0,
+  nfts: 0
 };
 
-// Display current coin amount on the page
+// Display current coin amount
 document.getElementById("coin-amount").innerText = wallet.coins;
 
-// Ensure Gun is loaded. In your HTML, include the Gun script:
-// <script src="https://unpkg.com/gun/gun.js"></script>
+// Initialize Gun (same peers as mempool)
+const gun = Gun({
+  peers: [
+    'http://localhost:3000/gun',
+    'http://192.168.1.107:3000/gun'
+  ]
+});
 
-// Initialize Gun (update the URL if your Gun server is hosted elsewhere)
-const gun = Gun('http://localhost:3000/gun');
-
-// Trade coins function
 function tradeCoins() {
-    let coinsToTrade = Number(document.getElementById("trade-coins").value);
+  const coinsToTrade = Number(document.getElementById("trade-coins").value);
+  if (!(coinsToTrade > 0 && coinsToTrade <= wallet.coins)) {
+    alert("Enter a valid amount up to your current coins.");
+    return;
+  }
 
-    // Debug logs
-    console.log("Selected Miner:", selectedMiner);
-    console.log("Wallet before trade:", wallet);
+  // Update wallet
+  wallet.coins -= coinsToTrade;
+  wallet.transactions++;
+  localStorage.setItem(
+    `minerData_${selectedMiner}_wallet`,
+    JSON.stringify(wallet)
+  );
+  document.getElementById("coin-amount").innerText = wallet.coins;
+  document.getElementById("trade-coins").value = "";
 
-    if (coinsToTrade > 0 && coinsToTrade <= wallet.coins) {
-        // Update wallet locally
-        wallet.coins = wallet.coins - coinsToTrade;
-        wallet.transactions = wallet.transactions + 1;
+  // Build the transaction
+  const now = new Date();
+  const newTransaction = {
+    miner: selectedMiner,
+    coins: coinsToTrade,
+    date: now.toLocaleDateString(),
+    time: now.toLocaleTimeString(),
+    timestamp: now.getTime()
+  };
 
-        // Save updated wallet data to localStorage (if you still need persistence)
-        localStorage.setItem(`minerData_${selectedMiner}_wallet`, JSON.stringify(wallet));
+  // 1) Push to Gun
+  gun.get('mempoolTransactions').set(newTransaction);
 
-        // Update the UI
-        document.getElementById("coin-amount").innerText = wallet.coins;
-        document.getElementById("trade-coins").value = "";  // Reset input field
+  // 2) Also persist immediately in localStorage for instant UI
+  const localPool =
+    JSON.parse(localStorage.getItem("mempoolTransactions")) || [];
+  localPool.push(newTransaction);
+  localStorage.setItem(
+    "mempoolTransactions",
+    JSON.stringify(localPool)
+  );
 
-        // Debug log for wallet after trade
-        console.log("Wallet after trade:", wallet);
-
-        // Create a new transaction object to push to Gun
-        const now = new Date();
-        const newTransaction = {
-            miner: selectedMiner,
-            coins: coinsToTrade,
-            date: now.toLocaleDateString(),
-            time: now.toLocaleTimeString(),
-            timestamp: now.getTime()  // Unique identifier for the transaction
-        };
-
-        // Push the new transaction to the Gun node 'mempoolTransactions'
-        gun.get('mempoolTransactions').set(newTransaction);
-
-        // Redirect to mempool.html (no query parameters are needed now)
-        window.location.href = 'mempool.html';
-    }
+  // 3) Navigate to mempool
+  window.location.href = 'mempool.html';
 }
