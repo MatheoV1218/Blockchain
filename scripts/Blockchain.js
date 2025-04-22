@@ -1,12 +1,12 @@
 document.addEventListener("DOMContentLoaded", () => {
-  console.log("DOM fully loaded – initializing blockchain view with fallback.");
+  console.log("DOM loaded – initializing blockchain view with fallback.");
 
-  // Load any locally stored blocks first
+  // Load locally stored chain first
   let blockchain =
     JSON.parse(localStorage.getItem("blockchainLedger")) || [];
   renderBlockchainLedger();
 
-  // Then subscribe to Gun for real-time updates
+  // Then subscribe to Gun
   const gun = Gun([
     'http://localhost:3000/gun',
     'http://192.168.1.107:3000/gun'
@@ -15,9 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   blockchainGun.map().on((block, key) => {
     if (block && typeof block.index === 'number') {
-      const idx = blockchain.findIndex(
-        b => b.index === block.index
-      );
+      const idx = blockchain.findIndex(b => b.index === block.index);
       if (idx >= 0) blockchain[idx] = block;
       else blockchain.push(block);
       renderBlockchainLedger();
