@@ -1,38 +1,43 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blockchain Transactions</title>
-    <link rel="stylesheet" href="styles/Mempool.css"> 
+  <meta charset="UTF-8">
+  <title>Blockchain Transactions & Ledger</title>
+  <link rel="stylesheet" href="styles/Mempool.css">
+  <!-- Optionally include your Blockchain.css here if you want ledger styling -->
+  <!-- <link rel="stylesheet" href="styles/Blockchain.css"> -->
 </head>
 <body>
 
-    <h1>Blockchain Transactions</h1>
+  <h1>Blockchain Transactions</h1>
+  <p>Mines Available: <span id="mine-counter">0</span></p>
 
-    <p>Mines Available: <span id="mine-counter">0</span></p>
+  <table id="blockchainTable" border="1">
+    <thead>
+      <tr>
+        <th>Select</th>
+        <th>#</th>
+        <th>Miner</th>
+        <th>Coins</th>
+        <th>Date</th>
+        <th>Time</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Mempool transactions go here -->
+    </tbody>
+  </table>
 
-    <table id="blockchainTable" border="1">
-        <thead>
-            <tr>
-                <th>Select</th>
-                <th>#</th>
-                <th>Miner</th>
-                <th>Transaction Details</th>
-                <th>Date</th>
-                <th>Time</th>
-            </tr>
-        </thead>
-        <tbody>
-            <!-- Transactions will be dynamically inserted here -->
-        </tbody>
-    </table>
+  <div id="delete-button-container"></div>
 
-    <!-- Button for deleting transactions (created dynamically in JS) -->
-    <div id="delete-button-container"></div>
+  <hr>
 
-    <script src="https://unpkg.com/gun/gun.js"></script>
-    <script src="scripts/mempool.js"></script>
+  <h2>Blockchain Ledger</h2>
+  <ul id="archived-list">
+    <!-- Mined blocks will be rendered here -->
+  </ul>
 
+  <script src="https://unpkg.com/gun/gun.js"></script>
+  <script src="scripts/mempool.js"></script>
 </body>
 </html>

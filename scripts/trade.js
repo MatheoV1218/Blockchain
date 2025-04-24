@@ -14,8 +14,7 @@ document.getElementById("coin-amount").innerText = wallet.coins;
 // Initialize Gun (same peers as mempool)
 const gun = Gun({
   peers: [
-    'http://localhost:3000/gun',
-    'http://192.168.1.107:3000/gun'
+    'http://localhost:3000/gun'
   ]
 });
 

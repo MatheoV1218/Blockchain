@@ -1,97 +1,112 @@
-body {
-  font-family: 'Montserrat', sans-serif;
-  background: #121212; /* Dark background */
-  color: #ffffff;
-  text-align: center;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  margin: 0;
-}
 
-h1 {
-  font-size: 2.5rem;
-  font-weight: bold;
-  color: #ffd700; /* Gold color for the title */
-}
+   body {
+    font-family: 'Montserrat', sans-serif;
+    background: #121212;
+    color: #ffffff;
+    text-align: center;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0;
+    min-height: 100vh;
+  }
 
-table {
-  width: 80%;
-  margin: 20px auto;
-  border-collapse: collapse;
-  background: #1e1e1e; /* Dark background for the table */
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
-  border-radius: 10px;
-  overflow: hidden;
-}
+  h1, h2 {
+    color: #ffd700;
+    margin: 20px 0 10px;
+  }
 
-th, td {
-  padding: 12px;
-  border: 1px solid #444; /* Darker borders */
-  text-align: center;
-}
+  table {
+    width: 80%;
+    margin: 10px auto;
+    border-collapse: collapse;
+    background: #1e1e1e;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    overflow: hidden;
+  }
 
-th {
-  background-color: #333;
-  color: #ffd700; /* Gold color for headers */
-  font-weight: bold;
-  text-transform: uppercase;
-}
+  th, td {
+    padding: 12px;
+    border: 1px solid #444;
+    text-align: center;
+  }
 
-tr:nth-child(even) {
-  background-color: #222; /* Slightly lighter dark rows */
-}
+  th {
+    background-color: #333;
+    color: #ffd700;
+    text-transform: uppercase;
+    font-weight: bold;
+  }
 
-tr:hover {
-  background-color: #333; /* Hover effect */
-}
+  tr:nth-child(even) {
+    background-color: #222;
+  }
 
-.button {
-  background: #1e1e1e;
-  color: white;
-  text-decoration: none;
-  font-size: 1.5rem;
-  font-weight: bold;
-  padding: 20px 50px;
-  border-radius: 10px;
-  transition: 0.3s;
-  text-align: center;
-  width: 300px;
-  text-transform: uppercase;
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
-}
+  tr:hover {
+    background-color: #333;
+  }
 
-.button:hover {
-  background: #333;
-  transform: scale(1.05);
-  color: #ffd700;
-}
+  .button,
+  #delete-transactions-btn,
+  #mine-transaction-btn {
+    background: #1e1e1e;
+    color: #ffffff;
+    font-size: 1.2rem;
+    font-weight: bold;
+    padding: 15px 40px;
+    border: none;
+    border-radius: 10px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: 0.3s;
+    box-shadow: 0 0 10px rgba(255,255,255,0.2);
+    margin: 10px;
+  }
 
-#delete-transactions-btn {
-  background: #1e1e1e; /* Dark background */
-  color: white;
-  font-size: 1.2rem;
-  font-weight: bold;
-  padding: 15px 40px;
-  border: none;
-  border-radius: 10px;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: 0.3s;
-  margin-top: 20px;
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
-}
+  .button:hover,
+  #delete-transactions-btn:hover,
+  #mine-transaction-btn:hover {
+    background: #333;
+    transform: scale(1.05);
+    color: #ffd700;
+  }
 
-#delete-transactions-btn:hover {
-  background: #333; /* Hover effect */
-  transform: scale(1.05);
-  color: #ffd700; /* Gold color on hover */
-}
 
-#delete-button-container {
-  margin-top: 20px;
-  text-align: center;
-}
+  #delete-button-container {
+    text-align: center;
+    margin: 10px 0 30px;
+  }
+
+
+  #archived-list {
+    list-style: none;
+    padding: 0;
+    width: 80%;
+    margin: 20px auto;
+    text-align: left;
+  }
+
+  #archived-list li {
+    background: #1e1e1e;
+    margin: 10px 0;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(255,255,255,0.2);
+    color: #ffffff;
+  }
+
+
+  #archived-list li ul {
+    list-style: none;
+    padding: 0;
+    margin-top: 10px;
+  }
+
+  #archived-list li ul li {
+    background: #222;
+    margin: 6px 0;
+    padding: 8px;
+    border-radius: 5px;
+  }

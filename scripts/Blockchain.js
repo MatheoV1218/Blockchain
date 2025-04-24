@@ -1,69 +1,70 @@
+// scripts/Blockchain.js
+
 document.addEventListener("DOMContentLoaded", () => {
-  console.log("DOM loaded – initializing blockchain view with fallback.");
+  console.log("DOM fully loaded – initializing blockchain view with Gun for P2P sync.");
 
-  // Load locally stored chain first
-  let blockchain =
-    JSON.parse(localStorage.getItem("blockchainLedger")) || [];
-  renderBlockchainLedger();
-
-  // Then subscribe to Gun
+  // —— 1) Initialize Gun & your “set” node ——
   const gun = Gun([
     'http://localhost:3000/gun',
-    'http://192.168.1.107:3000/gun'
+    'http://192.168.1.10:3000/gun'
   ]);
   const blockchainGun = gun.get('blockchainLedger');
+  let blockchain = [];
 
-  blockchainGun.map().on((block, key) => {
-    if (block && typeof block.index === 'number') {
-      const idx = blockchain.findIndex(b => b.index === block.index);
-      if (idx >= 0) blockchain[idx] = block;
-      else blockchain.push(block);
-      renderBlockchainLedger();
-    }
-  });
+  // (sha256 helper stays the same…)
 
   function renderBlockchainLedger() {
-    const list = document.getElementById("archived-list");
-    if (!list) return;
-    list.innerHTML = "";
+    const archivedList = document.getElementById("archived-list");
+    if (!archivedList) return;
+    archivedList.innerHTML = "";
 
-    if (!blockchain.length) {
-      list.innerHTML = "<li>No blocks have been mined yet.</li>";
+    if (blockchain.length === 0) {
+      archivedList.innerHTML = "<li>No blocks have been mined yet.</li>";
       return;
     }
 
-    blockchain
-      .sort((a, b) => a.index - b.index)
-      .forEach(block => {
-        const li = document.createElement("li");
-        li.style.margin = "10px 0";
-        li.style.padding = "10px";
-        li.style.border = "1px solid #444";
-        li.style.background = "#1e1e1e";
+    blockchain.sort((a, b) => a.index - b.index);
 
-        li.innerHTML = `
-          <strong>Block #${block.index}</strong><br>
-          <small><strong>Mined By:</strong> ${block.minedBy}</small><br>
-          <small><strong>Mined At:</strong> ${new Date(block.timestamp).toLocaleString()}</small><br>
-          <small><strong>Hash:</strong> ${block.hash}</small><br>
-          <small><strong>Prev Hash:</strong> ${block.previousHash}</small>
-        `;
+    blockchain.forEach(block => {
+      const li = document.createElement("li");
+      li.style.marginBottom = "15px";
+      li.style.padding      = "10px";
+      li.style.border       = "1px solid white";
+      li.style.background   = "#1e1e1e";
 
-        const ul = document.createElement("ul");
-        ul.style.marginTop = "8px";
-        if (Array.isArray(block.transactions)) {
-          block.transactions.forEach((tx, i) => {
-            const txLi = document.createElement("li");
-            txLi.innerHTML = `
-              <strong>Tx ${i+1}:</strong>
-              Miner ${tx.miner} traded ${tx.coins} coins<br>
-              <em>Date:</em> ${tx.date} <em>Time:</em> ${tx.time}
-            `;
-            ul.appendChild(txLi);
-          });
-        }
-        li.appendChild(ul);
-        list.appendChild(li);
-      });
+      // Block header
+      li.innerHTML = `
+        <strong>Block #${block.index}</strong><br>
+        <small><strong>Timestamp:</strong> ${block.timestamp || "N/A"}</small><br>
+        <small><strong>Hash:</strong>      ${block.hash      || "N/A"}</small><br>
+        <small><strong>Prev Hash:</strong> ${block.previousHash || "N/A"}</small><br>
+      `;
+
+      // —— NEW: one giant string of transactions ——  
+      const txPre = document.createElement("pre");
+      txPre.style.background = "#222";
+      txPre.style.color      = "#ffd700";
+      txPre.style.padding    = "8px";
+      txPre.style.marginTop  = "8px";
+      txPre.textContent      = block.transactions || "(no transactions)";
+      li.appendChild(txPre);
+
+      archivedList.appendChild(li);
+    });
   }
+
+  // —— 5) Subscribe & hydrate on page load ——
+  blockchainGun
+    .map()
+    .on((data, key) => {
+      if (data && typeof data.index === "number" && data.timestamp) {
+        const idx = blockchain.findIndex(b => b.index === data.index);
+        if (idx >= 0) blockchain[idx] = data;
+        else blockchain.push(data);
+        renderBlockchainLedger();
+      }
+    });
+
+  // Initial render
+  renderBlockchainLedger();
 });
