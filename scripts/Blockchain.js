@@ -6,7 +6,8 @@ document.addEventListener("DOMContentLoaded", () => {
   // —— 1) Initialize Gun & your “set” node ——
   const gun = Gun([
     'http://localhost:3000/gun',
-    'http://192.168.1.10:3000/gun'
+    , 'http://149.61.243.90:3000/gun'
+    //, 'http://149.61.211.129:3000/gun'
   ]);
   const blockchainGun = gun.get('blockchainLedger');
   let blockchain = [];
@@ -17,30 +18,31 @@ document.addEventListener("DOMContentLoaded", () => {
     const archivedList = document.getElementById("archived-list");
     if (!archivedList) return;
     archivedList.innerHTML = "";
-
+  
     if (blockchain.length === 0) {
       archivedList.innerHTML = "<li>No blocks have been mined yet.</li>";
       return;
     }
-
+  
     blockchain.sort((a, b) => a.index - b.index);
-
+  
     blockchain.forEach(block => {
       const li = document.createElement("li");
       li.style.marginBottom = "15px";
       li.style.padding      = "10px";
       li.style.border       = "1px solid white";
       li.style.background   = "#1e1e1e";
-
-      // Block header
+  
+      // Block header with Miner included
       li.innerHTML = `
         <strong>Block #${block.index}</strong><br>
         <small><strong>Timestamp:</strong> ${block.timestamp || "N/A"}</small><br>
+        <small><strong>Mined by:</strong> ${block.miner || "N/A"}</small><br>
         <small><strong>Hash:</strong>      ${block.hash      || "N/A"}</small><br>
         <small><strong>Prev Hash:</strong> ${block.previousHash || "N/A"}</small><br>
       `;
-
-      // —— NEW: one giant string of transactions ——  
+  
+      // Transaction details
       const txPre = document.createElement("pre");
       txPre.style.background = "#222";
       txPre.style.color      = "#ffd700";
@@ -48,10 +50,11 @@ document.addEventListener("DOMContentLoaded", () => {
       txPre.style.marginTop  = "8px";
       txPre.textContent      = block.transactions || "(no transactions)";
       li.appendChild(txPre);
-
+  
       archivedList.appendChild(li);
     });
   }
+  
 
   // —— 5) Subscribe & hydrate on page load ——
   blockchainGun

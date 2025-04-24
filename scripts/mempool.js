@@ -14,7 +14,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const gun           = Gun({
     peers: [
       'http://localhost:3000/gun',
-      'http://192.168.1.10:3000/gun'
+    , 'http://149.61.243.90:3000/gun'//,
+     //'http://149.61.211.129:3000/gun'
     ]
   });
   const mempoolGun    = gun.get('mempoolTransactions');
@@ -83,19 +84,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Create a block with all transactions concatenated into one string
   async function createBlock(txArray, prevHash, idx) {
+    const selectedMiner = localStorage.getItem("selectedMiner") || "Miner1";
     const txString = txArray
       .map(tx => `Miner:${tx.miner}|Coins:${tx.coins}|Date:${tx.date}|Time:${tx.time}`)
       .join('\n');
+  
     const blockData = txString + prevHash;
-    const hash      = await sha256(blockData);
+    const hash = await sha256(blockData);
+  
     return {
-      index:        idx,
-      timestamp:    new Date().toISOString(),
+      index: idx,
+      timestamp: new Date().toLocaleString("en-US", { timeZone: "America/New_York" }),
       transactions: txString,
       previousHash: prevHash,
-      hash
+      hash,
+      miner: selectedMiner
     };
   }
+  
 
   function getLatestBlock() {
     return new Promise(resolve => {
