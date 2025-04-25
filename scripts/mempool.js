@@ -14,8 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const gun           = Gun({
     peers: [
       'http://localhost:3000/gun',
-    , 'http://192.168.1.10:3000/gun'//,
-     //'http://149.61.211.129:3000/gun'
+      'http://149.61.249.68:3000/gun'
     ]
   });
   const mempoolGun    = gun.get('mempoolTransactions');
@@ -44,6 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderMempool() {
     const tbody = document.querySelector("#blockchainTable tbody");
     if (!tbody) return;
+    // only show un-mined txs, then sort by coins descending
     const visible = transactions
       .filter(tx => !globalMined.includes(tx.timestamp))
       .sort((a, b) => b.coins - a.coins);
@@ -60,7 +60,6 @@ document.addEventListener("DOMContentLoaded", () => {
       tbody.appendChild(tr);
     });
   }
-  
 
   function showMineButton() {
     if (document.getElementById("mine-transaction-btn")) return;
@@ -151,6 +150,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const allM = JSON.parse(localStorage.getItem("minersMines")) || {};
     allM[selectedMiner] = Math.max(0, allM[selectedMiner] - 1);
     localStorage.setItem("minersMines", JSON.stringify(allM));
+
+    // —— NEW: Sum coins of the 5 transactions, take 10%, and add to wallet ——  
+    const totalCoins = toMine.reduce((sum, tx) => sum + tx.coins, 0);
+    const bonus      = Math.floor(totalCoins * 0.10);
+    const walletKey  = `minerData_${selectedMiner}_wallet`;
+    const wallet     = JSON.parse(localStorage.getItem(walletKey)) || { transactions:0, coins:0, nfts:0, mines:0 };
+    wallet.coins    += bonus;
+    localStorage.setItem(walletKey, JSON.stringify(wallet));
 
     // 5) Update UI
     globalMined.push(...toMine.map(t => t.timestamp));

@@ -25,7 +25,7 @@ document.getElementById("wallet-coins").innerText = wallet.coins;
 const gun             = Gun({
   peers: [
     'http://localhost:3000/gun',
-    'http://192.168.1.10:3000/gun'
+    'http://149.61.249.68:3000/gun'
   ]
 });
 const participantsGun = gun.get("raffleParticipants");

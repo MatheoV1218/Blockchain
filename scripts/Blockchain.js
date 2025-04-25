@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // —— 1) Initialize Gun & your “set” node ——
   const gun = Gun([
     'http://localhost:3000/gun',
-    , 'http://192.168.1.10:3000/gun'
+    , 'http://149.61.249.68:3000/gun'
     //, 'http://149.61.211.129:3000/gun'
   ]);
   const blockchainGun = gun.get('blockchainLedger');
