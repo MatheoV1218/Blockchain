@@ -4,8 +4,6 @@
   <meta charset="UTF-8">
   <title>Blockchain Transactions & Ledger</title>
   <link rel="stylesheet" href="styles/Mempool.css">
-  <!-- Optionally include your Blockchain.css here if you want ledger styling -->
-  <!-- <link rel="stylesheet" href="styles/Blockchain.css"> -->
 </head>
 <body>
 
@@ -15,7 +13,7 @@
   <table id="blockchainTable" border="1">
     <thead>
       <tr>
-        <th>Select</th>
+        <!-- Removed: <th>Select</th> -->
         <th>#</th>
         <th>Miner</th>
         <th>Coins</th>
@@ -29,7 +27,6 @@
   </table>
 
   <div id="delete-button-container"></div>
-
 
   <script src="https://unpkg.com/gun/gun.js"></script>
   <script src="scripts/mempool.js"></script>

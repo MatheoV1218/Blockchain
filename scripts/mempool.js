@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const gun           = Gun({
     peers: [
       'http://localhost:3000/gun',
-    , 'http://149.61.243.90:3000/gun'//,
+    , 'http://192.168.1.10:3000/gun'//,
      //'http://149.61.211.129:3000/gun'
     ]
   });
@@ -44,13 +44,13 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderMempool() {
     const tbody = document.querySelector("#blockchainTable tbody");
     if (!tbody) return;
-    // only show un­mined txs
-    const visible = transactions.filter(tx => !globalMined.includes(tx.timestamp));
+    const visible = transactions
+      .filter(tx => !globalMined.includes(tx.timestamp))
+      .sort((a, b) => b.coins - a.coins);
     tbody.innerHTML = "";
     visible.forEach((tx, idx) => {
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td><input type="checkbox" class="transaction-checkbox" data-index="${idx}"></td>
         <td>${idx + 1}</td>
         <td>${tx.miner}</td>
         <td>${tx.coins}</td>
@@ -60,6 +60,7 @@ document.addEventListener("DOMContentLoaded", () => {
       tbody.appendChild(tr);
     });
   }
+  
 
   function showMineButton() {
     if (document.getElementById("mine-transaction-btn")) return;
@@ -77,31 +78,25 @@ document.addEventListener("DOMContentLoaded", () => {
   // Utilities for block creation
   async function sha256(msg) {
     const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(msg));
-    return Array.from(new Uint8Array(buf))
-      .map(b => b.toString(16).padStart(2, '0'))
-      .join('');
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
   }
 
   // Create a block with all transactions concatenated into one string
   async function createBlock(txArray, prevHash, idx) {
-    const selectedMiner = localStorage.getItem("selectedMiner") || "Miner1";
     const txString = txArray
       .map(tx => `Miner:${tx.miner}|Coins:${tx.coins}|Date:${tx.date}|Time:${tx.time}`)
       .join('\n');
-  
     const blockData = txString + prevHash;
-    const hash = await sha256(blockData);
-  
+    const hash      = await sha256(blockData);
     return {
-      index: idx,
-      timestamp: new Date().toLocaleString("en-US", { timeZone: "America/New_York" }),
+      index:        idx,
+      timestamp:    new Date().toLocaleString("en-US", { timeZone: "America/New_York" }),
       transactions: txString,
       previousHash: prevHash,
       hash,
-      miner: selectedMiner
+      miner:        selectedMiner
     };
   }
-  
 
   function getLatestBlock() {
     return new Promise(resolve => {
@@ -121,28 +116,20 @@ document.addEventListener("DOMContentLoaded", () => {
     const available = getCurrentMinerMines();
     if (available <= 0) { alert("No mines left."); return; }
 
-    const checked = Array.from(document.querySelectorAll(".transaction-checkbox:checked"));
-    if (checked.length < 1) {
-      alert("Select at least one transaction.");
+    // Automatically pick the top 5 unmined transactions by coin count
+    const visible = transactions
+      .filter(tx => !globalMined.includes(tx.timestamp))
+      .sort((a, b) => b.coins - a.coins);
+    if (visible.length < 5) {
+      alert("Not enough transactions to mine (need 5).");
       return;
     }
-    // ← NEW: limit to 5 per mine
-    if (checked.length > 5) {
-      alert("You can only mine up to 5 transactions at once.");
-      return;
-    }
+    const toMine = visible.slice(0, 5);
 
-    // Gather selected tx objects
-    const visible = transactions.filter(tx => !globalMined.includes(tx.timestamp));
-    const toMine  = checked
-      .map(cb => visible[+cb.dataset.index])
-      .filter(Boolean);
-    if (!toMine.length) { alert("No valid txs selected."); return; }
-
-    const latest    = await getLatestBlock();
-    const prevHash  = latest?.hash || "0";
-    const newIndex  = latest ? latest.index + 1 : 0;
-    const newBlock  = await createBlock(toMine, prevHash, newIndex);
+    const latest      = await getLatestBlock();
+    const prevHash    = latest?.hash || "0";
+    const newIndex    = latest ? latest.index + 1 : 0;
+    const newBlock    = await createBlock(toMine, prevHash, newIndex);
 
     console.log("✅ Created new block:", newBlock);
 
@@ -160,13 +147,14 @@ document.addEventListener("DOMContentLoaded", () => {
     localChain.push(newBlock);
     localStorage.setItem("blockchainLedger", JSON.stringify(localChain));
 
-    // 4) ← CHANGED: decrement exactly one mine per block, not per tx
+    // 4) Decrement exactly one mine per block
     const allM = JSON.parse(localStorage.getItem("minersMines")) || {};
     allM[selectedMiner] = Math.max(0, allM[selectedMiner] - 1);
     localStorage.setItem("minersMines", JSON.stringify(allM));
 
     // 5) Update UI
-    transactions = transactions.filter(tx => !toMine.some(t => t.timestamp === tx.timestamp));
+    globalMined.push(...toMine.map(t => t.timestamp));
+    transactions = transactions.filter(tx => !globalMined.includes(tx.timestamp));
     renderMempool();
     updateMineCounter();
   }

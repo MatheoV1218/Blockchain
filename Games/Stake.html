@@ -1,43 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Raffle Game</title>
-    <link rel="stylesheet" href="styles/stake.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Raffle Game</title>
+  <link rel="stylesheet" href="styles/stake.css">
 </head>
 <body>
-
-    <div class="container">
-        <h1>🎲 Raffle Game 🎲</h1>
-        
-        <div id="wallet-info">
-            <p><strong>Miner:</strong> <span id="miner-name"></span></p>
-            <p><strong>Coins:</strong> <span id="wallet-coins">0</span></p>
-        </div>
-
-        <label for="stake-amount">Stake Coins:</label>
-        <input type="number" id="stake-amount" min="1">
-        <button id="stake-btn">Stake</button>
-
-        <h2>Participants:</h2>
-        <ul id="participants-list"></ul>
-
-        <button id="draw-btn">🎉 Draw Winner</button>
-        <h2 id="winner-text"></h2>
+  <div class="container">
+    <h1> Raffle Game </h1>
+    <div id="wallet-info">
+      <p><strong>Miner:</strong> <span id="miner-name"></span></p>
+      <p><strong>Coins:</strong> <span id="wallet-coins">0</span></p>
     </div>
-    <div class = "menu">
-        <p>MENU</p>
-        <div class="content"> 
-            <a href="12-rock-paper-scissors.html">ROCK PAPER SCISSORS</a>
-            <a href="Clicker.html">CLICKER</a>
-            <a href="Stake.html">STAKE</a>
-            <a href="../Trade.html">TRADE</a>
-            <a href="../Wallet.html">WALLET</a>
-            <a href="../MinerSelectionPage.html">MINERS</a>
-            <a href="../Blockchain.html">BLOCKCHAIN</a>
-        </div>
-      </div>
-    <script src="scripts/stake.js"></script>
+
+    <label for="stake-amount">Stake Coins:</label>
+    <input type="number" id="stake-amount" min="1">
+    <button id="stake-btn">Stake</button>
+
+    <h2>Participants:</h2>
+    <ul id="participants-list"></ul>
+
+    <button id="draw-btn"> Draw Winner</button>
+    <h2 id="winner-text"></h2>
+  </div>
+
+  <div class="menu">
+    <!-- your menu links -->
+  </div>
+
+  <!-- ⚡️ Load Gun first -->
+  <script src="https://unpkg.com/gun/gun.js"></script>
+  <!-- ⚡️ Then your P2P raffle logic -->
+  <script src="scripts/stake.js"></script>
 </body>
 </html>
