@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const gun           = Gun({
     peers: [
       'http://localhost:3000/gun',
-      'http://149.61.249.68:3000/gun'
+      'http://192.168.1.10:3000/gun'
     ]
   });
   const mempoolGun    = gun.get('mempoolTransactions');
@@ -110,61 +110,83 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Mine logic using .set(...)
-  async function mineSelectedTransactions() {
-    console.log("🔨 Mine Transaction button clicked.");
-    const available = getCurrentMinerMines();
-    if (available <= 0) { alert("No mines left."); return; }
+  // Replace your existing mineSelectedTransactions with this:
+async function mineSelectedTransactions() {
+  console.log("🔨 Mine Transaction button clicked.");
+  const available = getCurrentMinerMines();
+  if (available <= 0) { alert("No mines left."); return; }
 
-    // Automatically pick the top 5 unmined transactions by coin count
-    const visible = transactions
-      .filter(tx => !globalMined.includes(tx.timestamp))
-      .sort((a, b) => b.coins - a.coins);
-    if (visible.length < 5) {
-      alert("Not enough transactions to mine (need 5).");
-      return;
-    }
-    const toMine = visible.slice(0, 5);
-
-    const latest      = await getLatestBlock();
-    const prevHash    = latest?.hash || "0";
-    const newIndex    = latest ? latest.index + 1 : 0;
-    const newBlock    = await createBlock(toMine, prevHash, newIndex);
-
-    console.log("✅ Created new block:", newBlock);
-
-    // 1) Notify mined txs (so they disappear from all peers’ mempools)
-    toMine.forEach(tx => minedTxGun.set({ timestamp: tx.timestamp }));
-
-    // 2) Publish the block itself as a SET entry
-    blockchainGun.set(newBlock, ack => {
-      if (ack.err) console.error("❌ Gun set failed:", ack.err);
-      else console.log("✅ Block set success:", newBlock.index);
-    });
-
-    // 3) Backup locally
-    const localChain = JSON.parse(localStorage.getItem("blockchainLedger")) || [];
-    localChain.push(newBlock);
-    localStorage.setItem("blockchainLedger", JSON.stringify(localChain));
-
-    // 4) Decrement exactly one mine per block
-    const allM = JSON.parse(localStorage.getItem("minersMines")) || {};
-    allM[selectedMiner] = Math.max(0, allM[selectedMiner] - 1);
-    localStorage.setItem("minersMines", JSON.stringify(allM));
-
-    // —— NEW: Sum coins of the 5 transactions, take 10%, and add to wallet ——  
-    const totalCoins = toMine.reduce((sum, tx) => sum + tx.coins, 0);
-    const bonus      = Math.floor(totalCoins * 0.10);
-    const walletKey  = `minerData_${selectedMiner}_wallet`;
-    const wallet     = JSON.parse(localStorage.getItem(walletKey)) || { transactions:0, coins:0, nfts:0, mines:0 };
-    wallet.coins    += bonus;
-    localStorage.setItem(walletKey, JSON.stringify(wallet));
-
-    // 5) Update UI
-    globalMined.push(...toMine.map(t => t.timestamp));
-    transactions = transactions.filter(tx => !globalMined.includes(tx.timestamp));
-    renderMempool();
-    updateMineCounter();
+  // pick top 5 unmined
+  const visible = transactions
+    .filter(tx => !globalMined.includes(tx.timestamp))
+    .sort((a, b) => b.coins - a.coins);
+  if (visible.length < 5) {
+    alert("Not enough transactions to mine (need 5).");
+    return;
   }
+  const toMine = visible.slice(0, 5);
+
+  // fetch latest block from Gun
+  const latest   = await getLatestBlock();
+  const prevHash = latest?.hash || "0";
+  const newIndex = latest ? latest.index + 1 : 0;
+
+  // build the new block
+  const newBlock = await createBlock(toMine, prevHash, newIndex);
+  console.log("✅ Created new block:", newBlock);
+
+  // ─── consensus check ───
+  const validIndex     = newBlock.index === newIndex;
+  const validPrevHash  = newBlock.previousHash === prevHash;
+  // recompute hash over the concatenated tx string + prevHash
+  const recomputedHash = await sha256(newBlock.transactions + newBlock.previousHash);
+  const validHash      = recomputedHash === newBlock.hash;
+
+  if (!validIndex || !validPrevHash || !validHash) {
+    console.error("❌ Block validation failed:", {
+      validIndex,
+      validPrevHash,
+      validHash
+    });
+    return;  // abort if any check fails
+  }
+
+  console.log("✅ Block is legitimate. Proceeding to publish.");
+
+  // 1) notify mined txs so they disappear
+  toMine.forEach(tx => minedTxGun.set({ timestamp: tx.timestamp }));
+
+  // 2) publish the block itself
+  blockchainGun.set(newBlock, ack => {
+    if (ack.err) console.error("❌ Gun set failed:", ack.err);
+    else console.log("✅ Block set success:", newBlock.index);
+  });
+
+  // 3) backup locally
+  const localChain = JSON.parse(localStorage.getItem("blockchainLedger")) || [];
+  localChain.push(newBlock);
+  localStorage.setItem("blockchainLedger", JSON.stringify(localChain));
+
+  // 4) decrement mine count
+  const allM = JSON.parse(localStorage.getItem("minersMines")) || {};
+  allM[selectedMiner] = Math.max(0, allM[selectedMiner] - 1);
+  localStorage.setItem("minersMines", JSON.stringify(allM));
+
+  // 5) bonus coins
+  const totalCoins = toMine.reduce((sum, tx) => sum + tx.coins, 0);
+  const bonus      = Math.floor(totalCoins * 0.10);
+  const walletKey  = `minerData_${selectedMiner}_wallet`;
+  const wallet     = JSON.parse(localStorage.getItem(walletKey)) || { transactions:0, coins:0, nfts:0, mines:0 };
+  wallet.coins    += bonus;
+  localStorage.setItem(walletKey, JSON.stringify(wallet));
+
+  // 6) update UI & state
+  globalMined.push(...toMine.map(t => t.timestamp));
+  transactions = transactions.filter(tx => !globalMined.includes(tx.timestamp));
+  renderMempool();
+  updateMineCounter();
+}
+
 
   // Listen for incoming mempool txs
   mempoolGun.map().on(data => {

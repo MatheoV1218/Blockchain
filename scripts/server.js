@@ -20,7 +20,7 @@ const gun = Gun({
   web: server, // Use the existing Express server
   peers: [
     'http://localhost:3000/gun',
-    , 'http://149.61.249.68:3000/gun'
+    , 'http://192.168.1.10:3000/gun'
      //,'http://149.61.211.129:3000/gun'
     // 'http://149.61.248.174:3000/gun' (Ardion's IP)] 
     //'http://192.168.1.10:3000/gun'
