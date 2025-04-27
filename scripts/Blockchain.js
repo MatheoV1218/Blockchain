@@ -4,8 +4,9 @@ document.addEventListener("DOMContentLoaded", () => {
   console.log("DOM loaded – init blockchain with single-block consensus.");
 
   const gun           = Gun([
-    'http://localhost:3000/gun',
-    'http://192.168.1.10:3000/gun'
+    'http://localhost:3000/gun'
+    , 'http://192.168.1.10:3000/gun'
+    , 'http://192.168.1.173:3000/gun'
   ]);
   const blockchainGun = gun.get('blockchainLedger');
 
